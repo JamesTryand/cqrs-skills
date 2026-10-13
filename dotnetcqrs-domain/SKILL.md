@@ -79,6 +79,12 @@ the two seem to disagree, the paradigm wins and this file is out of date.
     the subfield, so amounts not yet in one currency are never added.
   - A table made before the projection was generated has no hidden `_stream` column. Add it in
     the host's `InitAsync`, and rebuild once.
+- **`projection: "hand"`** (schema 3.17.0, dotnetcqrs 0.28.0, local): a read model built by a
+  hand-written projection, for a join no declaration expresses (timesheets' `late-entries`). The
+  route is still generated. Model-only reports its view scenarios HAND. The host's `--verify`
+  must name the projection in `HostDeciders.Projections` (`["late-entries"] =
+  typeof(LateEntriesProjection)`), and then runs it. Without that it fails, saying why. A host may
+  also name its own projection for a generated read model.
 - **`byEvent {values}`** (3.16.0): a field set to a literal per event, such as a status. An event
   it doesn't name leaves the field alone. It works on any read model.
 - **The generator refuses** schema features it doesn't implement (ingresses,
@@ -98,10 +104,9 @@ the two seem to disagree, the paradigm wins and this file is out of date.
 - **`RunOnceAsync`/`RunExclusivelyAsync` are for tests and offline tools only.** Never use
   them on a live request path.
 - **The change feed is in-process only.** Other nodes see new events on the 1-second tick.
-- **A hand-built read model's view scenarios fail in both checks.** Both the model-only and the
-  host `--verify` run *generated* projections for stateView scenarios. Timesheets carries two
-  known failures for this reason: `late-entries` (a join across four aggregates, not "rows per
-  list item") and the unreleased payroll preview (a hand query). HTTP tests cover them.
+- **A hand query over a generated read model can't be verified.** Timesheets' unreleased payroll
+  preview is its one known failure in both checks; HTTP tests cover it. A hand *projection* can be
+  (`projection: "hand"`, above).
 - **`rowsPerListItem` refuses** rollups, pii fields, search indexes and `rowKeyField` with it, and
   its SQL hasn't been run on Postgres (that suite skips without the service).
 
