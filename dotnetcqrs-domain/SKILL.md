@@ -98,8 +98,9 @@ the two seem to disagree, the paradigm wins and this file is out of date.
   lag-sensitive. For ownership use `requiredOwnership.stateField` (above): timesheets' four
   entry update/delete commands moved to it in W5/D37. A cross-aggregate scope (a PM's projects)
   still reads a projection, as context.
-- **`count`/`sum`/`groupBy` rollups aren't idempotent** under redelivery.
-- **The reactor target id is per source stream,** so a second trigger is lost.
+- **An update dispatched by a generated reactor** relies on its target refusing a redelivery (no command-id
+  dedup yet). Rollups are idempotent since `6c9b75a` (contributions table), and a reactor's create is keyed by its
+  triggering event since `12f05cd`.
 - **`RunOnceAsync`/`RunExclusivelyAsync` are for tests and offline tools only.** Never use
   them on a live request path.
 - **The change feed is in-process only.** Other nodes see new events on the 1-second tick.
