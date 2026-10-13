@@ -87,14 +87,13 @@ the two seem to disagree, the paradigm wins and this file is out of date.
   also name its own projection for a generated read model.
 - **`byEvent {values}`** (3.16.0): a field set to a literal per event, such as a status. An event
   it doesn't name leaves the field alone. It works on any read model.
+- **A command's authorization declarations combine** (dotnetcqrs `6649745`, after 0.28.0): every one
+  it declares must hold. Before that, the generated evaluator stopped at `requiredRole`.
 - **The generator refuses** schema features it doesn't implement (ingresses,
   partitioning, dataSubjects, `selfAccess.via`, timers, effects) rather than ignoring them.
 
 ## Known gaps (don't rely on them; see timesheets' `07-paradigm-audit.md`)
 
-- **Generated command authorization returns early on `requiredRole`.** `via` ownership, scope or
-  fieldGated on the same command are never checked. `stateField` ownership is unaffected: it is
-  decided in `Decide`, after authorization, so it always runs.
 - **`via` ownership and scope checks read projections at command time.** That is
   lag-sensitive. For ownership use `requiredOwnership.stateField` (above): timesheets' four
   entry update/delete commands moved to it in W5/D37. A cross-aggregate scope (a PM's projects)
