@@ -103,6 +103,8 @@ the two seem to disagree, the paradigm wins and this file is out of date.
   triggering event since `12f05cd`.
 - **`RunOnceAsync`/`RunExclusivelyAsync` are for tests and offline tools only.** Never use
   them on a live request path.
+- **External calls (ExtCaller) go through an outbox** (since `6ba7b34`): the consumer records, and
+  `consumer.Worker.RunAsync(ct)` must run beside the engine to make the calls.
 - **The change feed is in-process only.** Other nodes see new events on the 1-second tick.
 - **A hand query over a generated read model can't be verified.** Timesheets' unreleased payroll
   preview is its one known failure in both checks; HTTP tests cover it. A hand *projection* can be
