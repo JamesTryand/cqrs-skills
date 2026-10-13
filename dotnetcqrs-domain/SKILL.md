@@ -67,13 +67,28 @@ the two seem to disagree, the paradigm wins and this file is out of date.
   - `bypassRoles` exists only with `via`, because a decision knows its actor but not their role.
   - Scenarios must name `when.actor`. The verify harness passes it, and since 0.27.0 the
     generated-code harness does too.
+- **`rowsPerListItem {listField, groupBy}`** (schema 3.16.0, dotnetcqrs 0.28.0; local only on
+  2026-10-13, not yet published): a row per group of a stream's list items, keyed
+  `<stream>|<group>`. Timesheets' `invoiceProjectParts` (a PM's part of an invoice) uses it.
+  - Each event carrying the list replaces it (the events must carry the whole list). The stream's
+    other fields are merged into a companion `<table>_streams` table and copied onto every row;
+    the rows are rebuilt after each event, so a rebuild replays to the same rows.
+  - An item without the group subfield is in no row (an invoice's margin line). There is no
+    fallback to a stream-level value.
+  - **`sumOfItems`** sums a subfield over the row's items. It is null unless every item carries
+    the subfield, so amounts not yet in one currency are never added.
+  - A table made before the projection was generated has no hidden `_stream` column. Add it in
+    the host's `InitAsync`, and rebuild once.
+- **`byEvent {values}`** (3.16.0): a field set to a literal per event, such as a status. An event
+  it doesn't name leaves the field alone. It works on any read model.
 - **The generator refuses** schema features it doesn't implement (ingresses,
   partitioning, dataSubjects, `selfAccess.via`, timers, effects) rather than ignoring them.
 
 ## Known gaps (don't rely on them; see timesheets' `07-paradigm-audit.md`)
 
-- **Generated command authorization returns early on `requiredRole`.** Ownership, scope or
-  fieldGated on the same command are never checked.
+- **Generated command authorization returns early on `requiredRole`.** `via` ownership, scope or
+  fieldGated on the same command are never checked. `stateField` ownership is unaffected: it is
+  decided in `Decide`, after authorization, so it always runs.
 - **`via` ownership and scope checks read projections at command time.** That is
   lag-sensitive. For ownership use `requiredOwnership.stateField` (above): timesheets' four
   entry update/delete commands moved to it in W5/D37. A cross-aggregate scope (a PM's projects)
@@ -83,6 +98,12 @@ the two seem to disagree, the paradigm wins and this file is out of date.
 - **`RunOnceAsync`/`RunExclusivelyAsync` are for tests and offline tools only.** Never use
   them on a live request path.
 - **The change feed is in-process only.** Other nodes see new events on the 1-second tick.
+- **A hand-built read model's view scenarios fail in both checks.** Both the model-only and the
+  host `--verify` run *generated* projections for stateView scenarios. Timesheets carries two
+  known failures for this reason: `late-entries` (a join across four aggregates, not "rows per
+  list item") and the unreleased payroll preview (a hand query). HTTP tests cover them.
+- **`rowsPerListItem` refuses** rollups, pii fields, search indexes and `rowKeyField` with it, and
+  its SQL hasn't been run on Postgres (that suite skips without the service).
 
 ## Hand-written routes in a host
 
