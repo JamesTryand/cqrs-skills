@@ -49,7 +49,11 @@ downstream reaches back upstream to force a stage to be "done".
 4. **Projections write only their own tables and are deterministic under replay.** No
    reading other projections' tables, the clock, or external services while applying. They
    must be idempotent under at-least-once delivery, and rebuildable by resetting their
-   checkpoint and replaying.
+   checkpoint and replaying. **Each projection has exactly one writer.** The core flow is single
+   and provably correct; a second runner added for convenience (a rebuild tool with its own
+   engine, say) can apply the same events twice. A rebuild goes through the one writer.
+   Peripheral consumers that write no projection (an external caller) may run separately,
+   even as a pool, as long as each request is handled by exactly one of them.
 5. **An event that removes something must remove it from every read model that lists it.**
    Declare it (`removedByEventIds` in schema ≥ 3.9.0), don't hand-write it, and give it a
    scenario. Deleting an entry, unassigning someone or revoking a grant is a removal. A row
