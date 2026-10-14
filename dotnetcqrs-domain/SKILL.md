@@ -105,7 +105,9 @@ the two seem to disagree, the paradigm wins and this file is out of date.
   them on a live request path.
 - **External calls (ExtCaller) go through an outbox** (since `6ba7b34`): the consumer records, and
   `consumer.Worker.RunAsync(ct)` must run beside the engine to make the calls.
-- **The change feed is in-process only.** Other nodes see new events on the 1-second tick.
+- **Other nodes' commits:** on Postgres every append sends `pg_notify` and the store `LISTEN`s, so a
+  reader node's engine wakes at once (since `3e83ed0`, `IPollSource.SubscribeToCommits`). A SQLite
+  reader on a LiteFS replica still sees new events on its 1-second tick: nothing to listen to.
 - **A hand query over a generated read model can't be verified.** Timesheets' unreleased payroll
   preview is its one known failure in both checks; HTTP tests cover it. A hand *projection* can be
   (`projection: "hand"`, above).
@@ -124,6 +126,11 @@ gets 403 (S1 was four routes without this).
 
 - **The engine is nudged by every commit,** with a 1-second fallback tick. Each consumer
   catches up in registration order; a blocked consumer retries the same event forever.
+  **Order is when, not a guarantee (R6):** a consumer reads to the head as it is when it runs,
+  so a later one can be ahead of an earlier one. Never decide from another consumer's output.
+- **The erasure screen's actions come from the server:** `DataSubject.AcceptedCommands(state)`
+  (the decider's own rules, since `43949d5`), kept to what command authorization allows. Don't
+  repeat stage rules in a UI.
 - **`IReadModelChangeFeed`** (implemented by `ConsumerEngine`): after a projection
   checkpoints a batch, subscribers to its tables get `ReadModelChanged(table, position)`.
   It is one notification per table per batch, and callbacks must not block.
