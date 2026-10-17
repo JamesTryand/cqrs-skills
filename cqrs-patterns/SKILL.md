@@ -1,6 +1,6 @@
 ---
 name: cqrs-patterns
-description: "The architectural rules for event-sourced CQRS systems (dotnetcqrs, pocketcqrs, and apps built on them such as timesheets): the one-way data flow, where invariants live, what read models may and may not be used for, projections, automations/process managers, eventual consistency, live views, access rules, removal, rebuilds, and model-first testing. Use BEFORE designing or changing any decider, projection, reactor/automation, query route, read model, command authorization, or a UI that shows read models; whenever tempted to poll, retry with a sleep, wait for a projection to catch up, read a projection on the write path, or add a lock; and when reviewing or auditing such code. Runtime-specific workflow is in dotnetcqrs-domain and pocketcqrs-domain; this skill is the paradigm both follow."
+description: "The architectural rules for event-sourced CQRS systems (dotnetcqrs, pocketcqrs, and the applications built on them): the one-way data flow, where invariants live, what read models may and may not be used for, projections, automations/process managers, eventual consistency, live views, access rules, removal, rebuilds, and model-first testing. Use BEFORE designing or changing any decider, projection, reactor/automation, query route, read model, command authorization, or a UI that shows read models; whenever tempted to poll, retry with a sleep, wait for a projection to catch up, read a projection on the write path, or add a lock; and when reviewing or auditing such code. Runtime-specific workflow is in dotnetcqrs-domain and pocketcqrs-domain; this skill is the paradigm both follow."
 ---
 
 # CQRS patterns: follow the data flow
@@ -81,6 +81,9 @@ downstream reaches back upstream to force a stage to be "done".
 10. **The model comes first, and a test must be able to fail.** Change the event model
     before the code. Write the scenario first and watch it fail. Fixtures must look like
     real data (real date formats, other people's rows present), or the test proves nothing.
+    Verify runs a command scenario's authorization before its decider, over read models
+    built from its given events, and an error scenario passes only on its own message: give
+    a command `scope` its `message` (schema 4.0.0) so a refusal scenario can name it.
 
 ## Before you write code that…
 
@@ -103,7 +106,7 @@ downstream reaches back upstream to force a stage to be "done".
   `pocketcqrs-domain`.
 - **dotnetcqrs:** deciders are pure by construction. Access rules and removals are generated
   from the schema. The engine publishes a read-model change feed (`IReadModelChangeFeed`),
-  the basis of generated live routes (D27). See `dotnetcqrs-domain`.
+  the basis of generated live routes. See `dotnetcqrs-domain`.
 
 ## Reference
 

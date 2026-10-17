@@ -3,7 +3,7 @@
 Claude Code skills for event-sourced CQRS work:
 
 - `cqrs-patterns`: the paradigm (one-way data flow, where invariants live, read models, automations, live views). Read first.
-- `dotnetcqrs-domain`: workflow for dotnetcqrs and hosts built on it (timesheets).
+- `dotnetcqrs-domain`: workflow for dotnetcqrs and hosts built on it.
 - `pocketcqrs-domain`: workflow for PocketCQRS projects.
 
 ## Install
@@ -11,10 +11,14 @@ Claude Code skills for event-sourced CQRS work:
 Each skill folder is linked into `~/.claude/skills`. On Windows, a junction needs no admin rights:
 
 ```powershell
+$repo = '<this clone>'   # wherever cqrs-skills is checked out on this machine
 foreach ($s in 'cqrs-patterns','dotnetcqrs-domain','pocketcqrs-domain') {
-  New-Item -ItemType Junction -Path "$HOME\.claude\skills\$s" -Target "C:\dev\sandbox\cqrs-skills\$s"
+  New-Item -ItemType Junction -Path "$HOME\.claude\skills\$s" -Target "$repo\$s"
 }
 ```
+
+`pocketcqrs` also ships its own `pocketcqrs-domain` (`.claude/skills/` in that repo, embedded in
+the binary as `pocketcqrs skill install`); that copy is the one its users get.
 
 ## Keeping them current
 
