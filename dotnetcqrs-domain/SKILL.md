@@ -108,8 +108,11 @@ notebook's `reference/environments` `reference/machine-paths.md`, or ask).
 - **`byEvent {values}`** (3.16.0): a field set to a literal per event, such as a status. An event
   it doesn't name leaves the field alone. It works on any read model.
 - **A command's authorization declarations combine:** every one it declares must hold.
+- **`dataSubjects.erasure`** (3.2.0, 3.7.1): who may send `RequestErasure` (`self`, `roles`, `self`
+  through `via`). The generated `AuthorizeAsync` refuses every other `dataSubject` command, and all of
+  them without the declaration; a host allows holds, approvals or direct erasure in its own delegate.
 - **The generator refuses** schema features it doesn't implement (ingresses,
-  partitioning, dataSubjects, `selfAccess.via`, timers, effects) rather than ignoring them.
+  partitioning, `selfAccess.via`, timers, effects) rather than ignoring them.
 
 ## Known gaps (don't rely on them)
 
@@ -149,6 +152,8 @@ External calls (ExtCaller) have their own outbox, `IExtCallOutbox`: the consumer
   request. Wire it with `RegisterGovernedDataSubjects` and `RegisterErasureRetention`; the
   governor's reviews run through the outbox. See `docs/retention.md`.
 - The gateway refuses every `dataSubject` command until a host wires `authorize` (fail closed).
+  The generated `CommandAuthorization` admits only `RequestErasure`, as the document's
+  `dataSubjects.erasure` says; never return true for a `dataSubject` command you have no rule for.
 
 ## Hand-written routes in a host
 
