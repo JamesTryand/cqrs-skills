@@ -22,6 +22,7 @@ authoritative — read it rather than trusting a summary here:
 | HTTP surface, dry-run modes | `docs/reference/gateway.md` |
 | empty dir → running slice | `docs/tutorial.md`, `docs/getting-started.md` |
 | a design document → generated code | `docs/schema.md` |
+| personal data, erasure, retention | `docs/personal-data.md` |
 
 ## The invariant
 
@@ -108,6 +109,26 @@ Each of these produced a real defect in this project.
   the decider. That is the gate working.
 - **Nothing is registered by default.** PocketCQRS ships empty; `--tutorial` opts into the
   example `task`/`order` domains and their collections. Do not assume they exist.
+
+## Personal data and erasure
+
+The model is the same as dotnetcqrs's, with the same command and event names: read the
+`dotnetcqrs-domain` skill's "Personal data and erasure" section for the shape, and
+`docs/personal-data.md` here for the Go API. In short:
+
+- **`field.pii` is crypto-shredded:** encrypted under the person's own key, and erasing them destroys
+  the key. Reads then return `{"$redacted":true}`, and new personal data for that id gets `410`.
+- **The core `dataSubject` aggregate** (package `pii`): `RequestErasure` records that someone asked,
+  and erases nothing. `EraseSubject` erases. `pii.AcceptedCommands(state)` says what a subject
+  would act on, for a screen.
+- **Governance is opt-in** (package `retention`, `retention.Wire`): a retention policy holds or approves
+  a request, a legal hold blocks it, and reviews are due-dated outbox entries, not a timer.
+- **Who may ask can be declared** in the document, `dataSubjects.erasure {self, roles, via}` (v0.17.0):
+  `authorize.BuildErasureRequest(doc)` into `Authorizer.ErasureRequest`.
+- **It fails closed.** The `Authorizer` refuses every `dataSubject` command except a `RequestErasure`
+  the declaration admits. With no `Authorize` hook, the gateway refuses them all. Holding, approving,
+  legal holds and erasing directly are the host's own rule, checked in `Config.Authorize` before the
+  `Authorizer`. Never return true for a `dataSubject` command you have no rule for.
 
 ## Calling a third party
 
