@@ -1,6 +1,6 @@
 ---
 name: cqrs-patterns
-description: "The architectural rules for event-sourced CQRS systems (dotnetcqrs, pocketcqrs, and the applications built on them): the one-way data flow, where invariants live, what read models may and may not be used for, projections, automations/process managers, eventual consistency, live views, access rules, removal, rebuilds, and model-first testing. Use BEFORE designing or changing any decider, projection, reactor/automation, query route, read model, command authorization, or a UI that shows read models; whenever tempted to poll, retry with a sleep, wait for a projection to catch up, read a projection on the write path, or add a lock; and when reviewing or auditing such code. Runtime-specific workflow is in dotnetcqrs-domain and pocketcqrs-domain; this skill is the paradigm both follow."
+description: "The architectural rules for event-sourced CQRS systems (dotnetcqrs, pocketcqrs, and the applications built on them): the one-way data flow, where invariants live, what read models may and may not be used for, projections, automations/process managers, eventual consistency, live views, access rules, removal, rebuilds, model-first testing, and personal data (GDPR: PII fields, erasure, the key service). Use BEFORE designing or changing any decider, projection, reactor/automation, query route, read model, command authorization, or a UI that shows read models; whenever tempted to poll, retry with a sleep, wait for a projection to catch up, read a projection on the write path, or add a lock; and when reviewing or auditing such code. Runtime-specific workflow is in dotnetcqrs-domain and pocketcqrs-domain; this skill is the paradigm both follow."
 ---
 
 # CQRS patterns: follow the data flow
@@ -112,3 +112,7 @@ downstream reaches back upstream to force a stage to be "done".
 
 - `references/anti-patterns.md`: each anti-pattern, its symptom, the real case where it
   happened, and the fix.
+- `references/personal-data.md`: the GDPR crib sheet. How to classify fields as PII, read
+  encrypted and erased data, govern erasure, and run the key service, plus what each application
+  still has to decide. Read it before modelling any field about a person, and before shipping
+  anything that stores personal data.
