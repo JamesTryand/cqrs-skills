@@ -1,6 +1,6 @@
 ---
 name: cqrs-patterns
-description: "The architectural rules for event-sourced CQRS systems (dotnetcqrs, pocketcqrs, and the applications built on them): the one-way data flow, where invariants live, what read models may and may not be used for, projections, automations/process managers, eventual consistency, live views, access rules, removal, rebuilds, model-first testing, and personal data (GDPR: PII fields, erasure, the key service). Use BEFORE designing or changing any decider, projection, reactor/automation, query route, read model, command authorization, or a UI that shows read models; whenever tempted to poll, retry with a sleep, wait for a projection to catch up, read a projection on the write path, or add a lock; and when reviewing or auditing such code. Runtime-specific workflow is in dotnetcqrs-domain and pocketcqrs-domain; this skill is the paradigm both follow."
+description: "The architectural rules for event-sourced CQRS systems (dotnetcqrs, pocketcqrs, and the applications built on them): the one-way data flow, where invariants live, what read models may and may not be used for, projections, automations/process managers, eventual consistency, live views, access rules, removal, rebuilds, model-first testing, and personal data (GDPR: PII fields, erasure, the key service). Use BEFORE designing or changing any decider, projection, reactor/automation, query route, read model, command authorization, or a UI that shows read models; whenever tempted to poll, retry with a sleep, wait for a projection to catch up, read a projection on the write path, or add a lock; whenever modelling a timer, schedule, webhook, ingress or call to an outside system (the boundary: messages enter and leave, sources are not in the model); and when reviewing or auditing such code. Runtime-specific workflow is in dotnetcqrs-domain and pocketcqrs-domain; this skill is the paradigm both follow."
 ---
 
 # CQRS patterns: follow the data flow
@@ -18,18 +18,48 @@ and from real bugs found when code drifted from them. Each anti-pattern in
 ## The flow
 
 ```
+  sources (people, schedulers, webhooks, outside systems): NOT in the model
+     │ messages enter as commands                          ▲ messages leave
+─────┼─────────────────────────── the domain graph ────────┼──────────────────────
+     ▼                                                     │
 command ─▶ decider (pure: own stream only) ─▶ events (the only truth)
                                                   │
                      ┌────────────────────────────┼─────────────────────────────┐
                      ▼                            ▼                             ▼
-          projections (own tables)    automations / process managers    (external effects)
-                     │                    react ─▶ dispatch commands
-                     ▼
+          projections (own tables)    automations / process managers    calls out (ext-caller);
+                     │                    react ─▶ dispatch commands    the answer comes back
+                     ▼                                                  in as a command
               read models ─▶ queries, and LIVE views (pushed to whoever is showing them)
 ```
 
 Every arrow is one-way. **Latency between any two stages is expected and by design.** Nothing
 downstream reaches back upstream to force a stage to be "done".
+
+## The boundary: messages enter and leave; sources are not in the model
+
+The domain model is a directed graph. Messages cross its boundary in **three shapes only**:
+
+| shape | what it is | in the model |
+|---|---|---|
+| input → output | a call out and its answer | an automation's call (ext-caller); the answer and the give-up both come back in as **commands** |
+| input → unit | an outside input: a message enters, nothing goes back | a command the outside sends ("a period has ended", "payment arrived") |
+| unit → output | an outside output: a message leaves, nothing comes back | a publish or notification after an event |
+
+- **The model names the message and its meaning, never its source.** A scheduler, webhook, queue,
+  person or provider is a *source*. A schedule is modelled as the domain idea ("renewal is due")
+  and the command it sends, never as a cron job, timer service, URL, signature scheme or credential.
+- **The test:** does it say where a message comes from, or how it is carried? Then it is **not** in
+  the model and not in a generator. Sources are configured by surface tooling (`sctl`,
+  `lab/surface-tooling`). Does it say that a message enters or leaves, and what it means? Then it is.
+- **Never change a generator's or the schema's syntax or meaning to carry a source.** If something
+  seems to need it, stop and ask the user. (Done wrongly several times; the user's decision is
+  `0033` in the venture-overview hub.)
+- **Time arrives on the command.** A decider can't read the clock, so a scheduled check carries
+  "today" (and any outside answer) as command fields; the stream records deadlines it needs to
+  compare (for example, when grace ends), so the guard compares two values it already has.
+- Still undecided by the user (don't settle them yourself): whether a delay's length belongs in the
+  model, delay cancellation by events, "time passes" steps in scenarios, and a message that leaves
+  with no answer (an effect currently needs a give-up answer).
 
 ## The rules
 
@@ -97,6 +127,9 @@ downstream reaches back upstream to force a stage to be "done".
 | leave a row behind on a delete or unassign event | declare the removal, and add a scenario |
 | add a hand-written write route | call command authorization in it, and test a refused caller |
 | test eventual state with a sleep or polling loop | await the engine's catch-up once (a test-only barrier), or subscribe |
+| put a cron expression, webhook URL, signature scheme or timer service into the model | model the command the source sends; configure the source in surface tooling |
+| change a generator or the schema so it can carry a timer, schedule, ingress or effect | stop: apply the boundary test, and ask the user |
+| read the clock in a decider to see whether something is due | carry "today" on the command; store the deadline in the stream |
 
 ## Runtime notes
 
@@ -111,7 +144,8 @@ downstream reaches back upstream to force a stage to be "done".
 ## Reference
 
 - `references/anti-patterns.md`: each anti-pattern, its symptom, the real case where it
-  happened, and the fix.
+  happened, and the fix. Includes the boundary ones (a source modelled in the graph; a generator
+  changed to carry a source).
 - `references/personal-data.md`: the GDPR crib sheet. How to classify fields as PII, read
   encrypted and erased data, govern erasure, and run the key service, plus what each application
   still has to decide. Read it before modelling any field about a person, and before shipping

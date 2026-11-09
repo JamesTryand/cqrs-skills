@@ -142,6 +142,11 @@ The retention reviews use it (`ErasureGovernor`): its worker must run beside the
 External calls (ExtCaller) have their own outbox, `IExtCallOutbox`: the consumer records, and
 `consumer.Worker.RunAsync(ct)` must run beside the engine to make the calls.
 
+**Who calls, and when, is not in the model.** ExtCaller's configuration and any scheduler that
+sends a command are *sources*, configured by surface tooling, never in the EventModel document and
+never by changing the codegen. The model has only the commands they send. See the boundary
+section in `cqrs-patterns`.
+
 ## Personal data and erasure
 
 - `DotnetCqrs.Crypto`: the `dataSubject` aggregate with `RequestErasure` (records a request,

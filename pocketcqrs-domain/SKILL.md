@@ -141,6 +141,12 @@ One attempt, no retry: an uncaught failure dead-letters and the checkpoint advan
 call deadline is **per call, not per function** — two sequential slow calls exhaust the 5s
 function budget. Full detail in `docs/js-guide.md`.
 
+**Who calls, and when, is not in the model.** `extcaller`'s rules (which events, which third
+party, how the answer maps to a command) and any scheduler that sends a command are *sources*,
+configured by surface tooling, never in the EventModel document and never by changing the
+generator. The model has only the commands they send. See the boundary section in
+`cqrs-patterns`.
+
 ## When something does not work
 
 - **File ignored entirely** → directives must be in the **leading comment lines**; anything

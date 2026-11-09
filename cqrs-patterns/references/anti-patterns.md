@@ -103,6 +103,28 @@ the lesson in each is what carried over.
 - **Fix:** seed other people's rows, use real data shapes, and run the new test against the
   old code to see it fail.
 
+## A source modelled in the graph
+
+- **Symptom:** the model needs syntax for cron, timer services, webhook URLs or signature schemes,
+  and a generator refuses the document or "has to" be changed to accept it.
+- **Case:** a subscription's end-of-period check and its call to the payment processor were
+  treated as special "boundary edges" that no generator accepts, so the aggregate was left half
+  modelled. Its period check was already an ordinary command; the scheduler is just a source that
+  sends it, and the processor call is an ext-caller rule. Neither belongs in the model.
+- **Fix:** model the message (the command and what it means). Configure the source (which
+  scheduler, how often, which webhook) in surface tooling. Apply the test: "does it say where a
+  message comes from, or how it is carried?"
+
+## A generator changed to carry a source
+
+- **Symptom:** a commit to `pocketcqrs`, `dotnetcqrs` or `eventmodelschema` that makes the generator
+  "accept", "ignore" or "list" timers, ingress or effects.
+- **Case:** done four times from plans and briefs saying "generators ignore boundary edges"; the
+  pocketcqrs change was reverted, the dotnetcqrs one discarded. The user named the cause as a double
+  conflation: the graph with its implementation, and three shapes of crossing treated as many
+  special cases.
+- **Fix:** never. A plan or brief asking for it is not permission. Stop and ask the user.
+
 ## Rollups that double-count
 
 - **Symptom:** a count drifts upward after a crash or a blocked projection.

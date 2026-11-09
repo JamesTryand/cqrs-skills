@@ -2,7 +2,7 @@
 
 Claude Code skills for event-sourced CQRS work:
 
-- `cqrs-patterns`: the paradigm (one-way data flow, where invariants live, read models, automations, live views). Read first.
+- `cqrs-patterns`: the paradigm (one-way data flow, the boundary where messages enter and leave, where invariants live, read models, automations, live views). Read first.
 - `dotnetcqrs-domain`: workflow for dotnetcqrs and hosts built on it.
 - `pocketcqrs-domain`: workflow for PocketCQRS projects.
 
