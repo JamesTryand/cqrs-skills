@@ -107,7 +107,11 @@ The domain model is a directed graph. Messages cross its boundary in **three sha
 9. **Access is decided per read model, by the backend.** `requiredRole`, `selfAccess` and
    `grantsAccess` scopes (schema ≥ 3.8.0) are bound to the caller, whatever params the
    request sends. Hiding a link in the UI is cosmetic and never replaces the rule. Every
-   write route, hand-written ones included, runs command authorization.
+   write route, hand-written ones included, runs command authorization. A command that
+   declares no permission is open to every signed-in caller, so where anyone can sign up,
+   every command says who may send it (`requiredRole` at least), and each machine sender
+   has its own role, not a superuser's. Both platforms enforce the declarations
+   (pocketcqrs ≥ 0.18.0, dotnetcqrs generated hosts ≥ 0.36.0).
 10. **The model comes first, and a test must be able to fail.** Change the event model
     before the code. Write the scenario first and watch it fail. Fixtures must look like
     real data (real date formats, other people's rows present), or the test proves nothing.
@@ -126,6 +130,8 @@ The domain model is a directed graph. Messages cross its boundary in **three sha
 | add a lock, semaphore or "busy" flag to keep write and read in step | don't; if ordering matters, it belongs in one stream |
 | leave a row behind on a delete or unassign event | declare the removal, and add a scenario |
 | add a hand-written write route | call command authorization in it, and test a refused caller |
+| add a command with no `requiredRole` (or other permission) | declare who may send it; test a caller without the role is refused |
+| give a scheduled job or intake a superuser token | give it its own account and role, and a long-lived token kept on its host |
 | test eventual state with a sleep or polling loop | await the engine's catch-up once (a test-only barrier), or subscribe |
 | put a cron expression, webhook URL, signature scheme or timer service into the model | model the command the source sends; configure the source in surface tooling |
 | change a generator or the schema so it can carry a timer, schedule, ingress or effect | stop: apply the boundary test, and ask the user |

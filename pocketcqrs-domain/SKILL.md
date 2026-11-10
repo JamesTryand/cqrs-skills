@@ -109,6 +109,25 @@ Each of these produced a real defect in this project.
   the decider. That is the gate working.
 - **Nothing is registered by default.** PocketCQRS ships empty; `--tutorial` opts into the
   example `task`/`order` domains and their collections. Do not assume they exist.
+- **A command with no permission is open to every signed-in caller.** Since v0.18.0 the stock
+  server enforces a decider's `//@authorize <Command> <policy JSON>` lines (written by
+  `schema import` from the model's `requiredRole`/`fieldGatedRole`/`requiredOwnership.via`/
+  `scope`); a command without one is not checked, and `users` allows self-registration. Declare
+  who may send a command in the model; a superuser passes every policy.
+
+## Who may send a command (v0.18.0)
+
+- The policy travels with the decider file as `//@authorize` lines, so a reload changes it (the
+  report counts `commandPolicies`). A hand-written decider may declare one too; a malformed line or
+  a command not in that file's `//@commands` is a load error.
+- The caller's role is the auth record's `--cqrsRoleField` (default `role`), the same field read
+  models' rules read; the server stops a user setting it on themselves. Refused → `403` with the
+  policy's message.
+- Commands a reactor dispatches are not checked: the check is on the gateway.
+- **A machine caller** (a scheduled job, an intake) is a `users` account holding its own role, not a
+  superuser: a superuser token lasts 24 hours. Mint a long-lived token with
+  `POST /api/collections/users/impersonate/<id>` `{"duration": <seconds>}` as a superuser; resetting
+  the account's password kills every token it had (that is the rotation).
 
 ## Personal data and erasure
 
@@ -126,7 +145,8 @@ The model is the same as dotnetcqrs's, with the same command and event names: re
 - **Who may ask can be declared** in the document, `dataSubjects.erasure {self, roles, via}` (v0.17.0):
   `authorize.BuildErasureRequest(doc)` into `Authorizer.ErasureRequest`.
 - **It fails closed.** The `Authorizer` refuses every `dataSubject` command except a `RequestErasure`
-  the declaration admits. With no `Authorize` hook, the gateway refuses them all. Holding, approving,
+  the declaration admits. With no `Authorize` hook, the gateway refuses them all, and the stock
+  server's own hook (v0.18.0) keeps that refusal. Holding, approving,
   legal holds and erasing directly are the host's own rule, checked in `Config.Authorize` before the
   `Authorizer`. Never return true for a `dataSubject` command you have no rule for.
 

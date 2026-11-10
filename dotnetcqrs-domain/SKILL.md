@@ -108,6 +108,13 @@ notebook's `reference/environments` `reference/machine-paths.md`, or ask).
 - **`byEvent {values}`** (3.16.0): a field set to a literal per event, such as a status. An event
   it doesn't name leaves the field alone. It works on any read model.
 - **A command's authorization declarations combine:** every one it declares must hold.
+- **`generate --host` enforces them (0.36.0)** when the document declares any command permission:
+  `MapCqrsGateway(authorize: ...)` calls the generated `AuthorizeAsync`. Without a declaration
+  `Program.cs` is unchanged and every command is open to any caller.
+  - Role and subject come from the claims named by `Cqrs:RoleClaim` (default `role`) and
+    `Cqrs:SubjectClaim` (default `ClaimTypes.NameIdentifier`).
+  - The scaffold has no sign-in, so a declared command answers 403 until the host adds one.
+  - Command names match whatever their case; `dataSubject` commands keep their refusal.
 - **`dataSubjects.erasure`** (3.2.0, 3.7.1): who may send `RequestErasure` (`self`, `roles`, `self`
   through `via`). The generated `AuthorizeAsync` refuses every other `dataSubject` command, and all of
   them without the declaration; a host allows holds, approvals or direct erasure in its own delegate.
@@ -156,7 +163,8 @@ section in `cqrs-patterns`.
 - `DotnetCqrs.Retention` (opt-in, 0.31.0): holds, reviews and retention policies decide a
   request. Wire it with `RegisterGovernedDataSubjects` and `RegisterErasureRetention`; the
   governor's reviews run through the outbox. See `docs/retention.md`.
-- The gateway refuses every `dataSubject` command until a host wires `authorize` (fail closed).
+- The gateway refuses every `dataSubject` command until a host wires `authorize` (fail closed);
+  the wiring `generate --host` writes (0.36.0) keeps that refusal.
   The generated `CommandAuthorization` admits only `RequestErasure`, as the document's
   `dataSubjects.erasure` says; never return true for a `dataSubject` command you have no rule for.
 
