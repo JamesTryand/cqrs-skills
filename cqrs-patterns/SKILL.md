@@ -147,6 +147,12 @@ The domain model is a directed graph. Messages cross its boundary in **three sha
   from the schema. The engine publishes a read-model change feed (`IReadModelChangeFeed`),
   the basis of generated live routes. See `dotnetcqrs-domain`.
 
+- **Both:** an application's domain lives in the application's own repository, never in the
+  platform's source. It depends on the platform as a released version (a Go module and tool;
+  NuGet packages and a `dotnet tool`), with one version pinning the generator and the
+  libraries. The generated code is committed and never edited. A checkout is only for trying
+  an unreleased platform version.
+
 ## Reference
 
 - `references/anti-patterns.md`: each anti-pattern, its symptom, the real case where it

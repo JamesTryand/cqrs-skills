@@ -1,6 +1,6 @@
 ---
 name: dotnetcqrs-domain
-description: "Work on dotnetcqrs or a host built on it: EventModel-first changes, `dotnetcqrs-codegen generate --host` / `verify`, merging generated code into a hand-finished host, read-model access rules (requiredRole, selfAccess, grantsAccess), removedByEventIds, command authorization (scope actorField and message) on literal routes, the consumer engine and its read-model change feed / live routes, the outbox, governed erasure (DotnetCqrs.Retention), rebuilding projections, and packaging/publishing a release. Use when editing deciders, projections, query routes, CommandAuthorization, Program.cs wiring, or the codegen itself. Read cqrs-patterns first for the paradigm."
+description: "Work on dotnetcqrs or a host built on it: EventModel-first changes, `dotnetcqrs-codegen generate --host` / `verify`, a generated host in its own repository (NuGet package references, the generator pinned as a `dotnet tool`), merging generated code into a hand-finished host, read-model access rules (requiredRole, selfAccess, grantsAccess), removedByEventIds, command authorization (scope actorField and message) on literal routes, the consumer engine and its read-model change feed / live routes, the outbox, governed erasure (DotnetCqrs.Retention), rebuilding projections, and packaging/publishing a release. Use when editing deciders, projections, query routes, CommandAuthorization, Program.cs wiring, or the codegen itself. Read cqrs-patterns first for the paradigm."
 ---
 
 # Working with dotnetcqrs
@@ -31,13 +31,14 @@ notebook's `reference/environments` `reference/machine-paths.md`, or ask).
    - Schema-validate with `npx ajv validate -s eventmodeling.schema.json -d <model>
      --spec=draft2020 -c ajv-formats` from the schema repo's `schema/`.
 2. **Write the scenarios first, and see them fail.** Run
-   `dotnet run --project src/DotnetCqrs.Codegen.Cli -- verify --input <model>` and record
-   PASS/FAIL before and after. Existing failures stay the same set.
+   `dotnet tool run dotnetcqrs-codegen verify --input <model>` in the host's repository (the
+   pinned tool; inside dotnetcqrs itself, `dotnet run --project src/DotnetCqrs.Codegen.Cli --
+   verify ...`) and record PASS/FAIL before and after. Existing failures stay the same set.
    - A stateView scenario can name its `caller` (schema 3.8.0); a command scenario names
      `when.actor`.
    - Seed other people's rows, or the scenario proves nothing.
-3. **Generate into a scratch folder, never over the host:** `generate --host --input <model>
-   --output <scratch> --project-name <Name> --dotnetcqrs-project <path>/DotnetCqrs.csproj`.
+3. **Generate into a scratch folder, never over a hand-finished host:** `dotnet tool run
+   dotnetcqrs-codegen generate --host --input <model> --output <scratch> --project-name <Name>`.
 4. **Diff each generated file against the host's.**
    - Take the generated file wholesale only when the hand version adds nothing.
    - Otherwise merge just the generated block, and mark hand logic `[HAND, reason]`.
@@ -46,6 +47,29 @@ notebook's `reference/environments` `reference/machine-paths.md`, or ask).
      against the generated `Columns` list before taking a route.
 5. **Test through the real commands, over HTTP.** Run the new test against the previous
    commit and see it fail (a detached `git worktree` at `HEAD`).
+
+## A host lives in its own repository (0.37.0)
+
+A generated host is an application: it lives in its own repository and depends on dotnetcqrs
+as **NuGet packages**, never its source or a checkout (`docs/tutorial.md`, "Running it as a
+host").
+
+- **Start:** `dotnet new tool-manifest`, then `dotnet tool install
+  JamesTryand.DotnetCqrs.Codegen.Cli --version <v>`, then `dotnet tool run dotnetcqrs-codegen
+  generate --host ...`.
+- **What it writes:** the `.csproj` references `JamesTryand.DotnetCqrs`, `.Host`, `.Codegen`,
+  `.Crypto`, `.Postgres` and `.Telemetry.Nats` at the generator's own version. The tool
+  manifest `dotnet tool` finds (the nearest at or above the project, or a new
+  `.config/dotnet-tools.json`) gets the generator pinned at that same version; other tools in
+  it are kept. One version pins the generator and the libraries together.
+- **Upgrade:** `dotnet tool update JamesTryand.DotnetCqrs.Codegen.Cli --version <new>`, then
+  generate again: the `.csproj` and the manifest move together. `--dotnetcqrs-version` names
+  another published version.
+- **`--dotnetcqrs-project <checkout>/src/DotnetCqrs/DotnetCqrs.csproj`** writes project
+  references instead, and no manifest: only for trying an unreleased version, and for
+  dotnetcqrs's own tests. A host committed with project references depends on dotnetcqrs's
+  source; switch it back before committing.
+- Releases before 0.37.0 required `--dotnetcqrs-project` for `--host`.
 
 ## What verify runs
 
