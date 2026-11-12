@@ -121,6 +121,11 @@ what lawful basis is a business and legal call for each system, made with whoeve
 - Which fields are **retained** and which are **erasable**, and the retention period for each class.
   Any built-in default period is a placeholder until the business confirms it.
 - Who may **ask** for erasure (self, which roles), and who may **hold, approve or erase directly**.
+- How long erasable data is **kept at most** (storage limitation), and what erases it then. A
+  period is a source's job, outside the model: a scheduled job reads a read model as context and
+  sends the governed erasure, on its own role. The date arrives on the commands (`statusSince`),
+  never from a decider's clock. The privacy notice states a period only once something enforces it.
+  Worked example: landing-pages `retention/` (30 days unconfirmed, 12 months otherwise).
 - Whether supporting data (free-text descriptions behind invoices, expense notes) is retained for the
   invoice's period.
 - The lawful basis for each kind of personal data, and what the privacy notice tells people.
