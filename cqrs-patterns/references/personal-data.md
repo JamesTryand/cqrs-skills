@@ -104,9 +104,12 @@ what lawful basis is a business and legal call for each system, made with whoeve
 - **A backup must never undo an erasure.** Restoring keys from before an erasure brings the person
   back. Keep the erasure ledger **off-host**, and after any restore reconcile against it (destroy
   every key the ledger says was destroyed) before serving traffic. Rehearse the real restore and
-  reconcile path, not a copy of its steps.
+  reconcile path, not a copy of its steps. Vault: `ops/vault/vault.sh reconcile`. Embedded backend:
+  `kms reconcile [ledger copies...]` (idempotent, so it can run at every start, before the facade
+  serves; put the off-host copy where it reads it after a restore).
 - **Embedded backend:** its master key sits inside the same trust boundary as its database. Keep the
-  master key out of the database's backups. There's no HA, audit log or key rotation. It suits
+  master key out of the database's backups: give it as `KMS_EMBEDDED_MASTER_KEY` from a host secret
+  rather than a file on the data volume. A wrong key is refused at start. There's no HA, audit log or key rotation. It suits
   development, demos and small single-host use; choose deliberately before real data depends on it.
 - **Vault backend:** keys are out of the application host's reach. It adds unseal on restart, TLS,
   scoped access policy, and snapshot/DR that must honour the erasure ledger.
