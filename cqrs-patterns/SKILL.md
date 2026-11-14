@@ -57,9 +57,12 @@ The domain model is a directed graph. Messages cross its boundary in **three sha
 - **Time arrives on the command.** A decider can't read the clock, so a scheduled check carries
   "today" (and any outside answer) as command fields; the stream records deadlines it needs to
   compare (for example, when grace ends), so the guard compares two values it already has.
-- Still undecided by the user (don't settle them yourself): whether a delay's length belongs in the
-  model, delay cancellation by events, "time passes" steps in scenarios, and a message that leaves
-  with no answer (an effect currently needs a give-up answer).
+- **Decided by the user (2026-11-14):** a delay's length ("grace lasts 7 days") is in the model;
+  firing it is a source's job. Delays are not cancelled by events: the decider's guards make a late
+  message harmless. Scenarios have no "time passes" step: send a command with a later date. A
+  message that leaves with no answer is a shape of its own, not an effect with an optional answer.
+  The schema still has `delay.cancelledByEventIds` and `elapsed` until its own change is approved:
+  don't use them.
 
 ## The rules
 
