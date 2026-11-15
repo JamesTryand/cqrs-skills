@@ -61,8 +61,12 @@ The domain model is a directed graph. Messages cross its boundary in **three sha
   firing it is a source's job. Delays are not cancelled by events: the decider's guards make a late
   message harmless. Scenarios have no "time passes" step: send a command with a later date. A
   message that leaves with no answer is a shape of its own, not an effect with an optional answer.
-  The schema still has `delay.cancelledByEventIds` and `elapsed` until its own change is approved:
-  don't use them.
+  Approved 2026-11-15 but not built: the schema drops those two and moves `schedule.cron`/`timeZone`
+  and an ingress's `verification`/`deliveryIdField` out to surface tooling. Until then, don't use any
+  of them.
+- **Two documents, joined by message ids (the user, 2026-11-15).** The event model holds only
+  model parts. Surface tooling's own description holds the sources (schedule, webhook adapter,
+  signature check, host, secrets) and names the model's messages by id, never the reverse.
 
 ## The rules
 
