@@ -66,6 +66,9 @@ what lawful basis is a business and legal call for each system, made with whoeve
   "Erased" marker, never `[object Object]` and never a 500. Test a screen with an erased person in it.
 - **Search and filter on PII needs a blind index** (a keyed HMAC) or a `match` filter. `WHERE email
   = ...` stops working once email is encrypted. Login by email goes through the blind index.
+- **Delete a subject's blind index at erasure.** Kept, it still identifies someone who asked to be forgotten. The same
+  address may then sign up again, as a new subject (the key service won't recreate the old key); say so in the privacy
+  policy (the user, 2026-11-16).
 - **Sums over encrypted values are revealed and summed in the host at read time.** Don't store a
   clear aggregate, which would leak what the encryption protects.
 - **Replay and rebuild must tolerate erased subjects.** A projection that meets an unreadable field
@@ -111,6 +114,9 @@ what lawful basis is a business and legal call for each system, made with whoeve
   master key out of the database's backups: give it as `KMS_EMBEDDED_MASTER_KEY` from a host secret
   rather than a file on the data volume. A wrong key is refused at start. There's no HA, audit log or key rotation. It suits
   development, demos and small single-host use; choose deliberately before real data depends on it.
+  The operator's policy (the user, 2026-11-16): a sealed copy of the master key in two places the operator
+  controls; rotate it (re-wrap every subject key) only on a suspected leak or when someone who knew it leaves; build and
+  test the rotate step before the first real customer.
 - **Vault backend:** keys are out of the application host's reach. It adds unseal on restart, TLS,
   scoped access policy, and snapshot/DR that must honour the erasure ledger.
 - **Demo and test data:** an erasure demo uses up its subject for good. Start each run from a fresh
