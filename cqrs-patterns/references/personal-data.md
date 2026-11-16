@@ -35,12 +35,18 @@ what lawful basis is a business and legal call for each system, made with whoeve
 ## Modelling: do this in the event model first
 
 1. **Mark every personal field `pii: true`** and name its `piiSubject`, a sibling field holding the
-   subject's id. **When in doubt, it's PII.** That includes:
-   - direct identifiers (name, email, payroll or customer numbers);
+   subject's id. **PII is a person's own private identifying information, and its scope is small**
+   (the user, 2026-11-16). Encryption costs latency, on reads above all, so mark only what is PII:
+   - direct identifiers (name, personal email, payroll or customer numbers);
    - pay and cost figures, *and values derived from them* (an amount that is rate × hours discloses
      the rate);
-   - **free text** (descriptions, notes, comments, generated messages), which can name anyone or
-     anything.
+   - **free text in a personal system**: a person's own notes, messages or chat logs in a system
+     they use for themselves.
+
+   **Not PII: business-related data connected to a person.** Role email addresses (they are
+   historical), and what a user provides in the course of their work: descriptions, comments, chat
+   logs in a company's system. The test is the system's purpose: the same chat log is PII in a
+   personal system and not in a company one. Decide it per system and write the reason down.
 2. **Every event that carries a subject's personal data must carry that subject's id.** An update
    event that only has `entryId` can't name its `piiSubject`. Add the subject id to the event. The
    decider already knows it from state.
@@ -51,8 +57,12 @@ what lawful basis is a business and legal call for each system, made with whoeve
 5. **One subject per partition.** The same person in two systems is two subjects. A system passes an
    erasure on as a *request*, which the receiving system's own retention check rules on.
 6. **Things that are not PII:** opaque ids, business entities (customers, projects), commercial
-   rates, and counts or hours needed in clear for rollups. Decide these knowingly and write the
-   reason down.
+   rates, counts or hours needed in clear for rollups, and work content (rule 1). Decide these
+   knowingly and write the reason down.
+   **Keeping some data after an erasure request** (invoices kept for the tax authority): split by
+   system, not by field. The system that must keep it holds it under its own key for that person, and
+   governed erasure holds its part until the period ends. A per-field retention-class marker waits for
+   a case with different periods inside one system (the user, 2026-11-16).
 7. **Erasure reasons and other governance data are stored in the clear and outlive the erasure.**
    Use codes (`asked-by-subject`), never personal data.
 8. **Declare who may ask:** `dataSubjects.erasure { self, roles, via }`. This authorises
