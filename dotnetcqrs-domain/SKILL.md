@@ -150,7 +150,7 @@ host").
 - **`via` ownership and scope checks read projections at command time.** That is
   lag-sensitive. For ownership use `requiredOwnership.stateField` (above). A cross-aggregate
   scope (a lead's projects) still reads a projection, as context.
-- **A reaction redelivered after a crash** is skipped since dotnetcqrs `0ace646` (unreleased,
+- **A reaction redelivered after a crash** is skipped since dotnetcqrs `0ace646` (released in 0.38.0,
   2026-11-17): `ReactorConsumer` stamps a commandId derived from the reactor, the cause and the
   index, and `DeciderRegistry` skips a command whose id is already in the target stream. Before
   that, an update onto a stream with no create-once rule (auto-ship) could be applied twice;
