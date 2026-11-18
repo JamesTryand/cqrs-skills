@@ -50,7 +50,7 @@ node scripts/architecture-check.js <path>/system.architecture.json          # ex
 Or pinned to a tag with nothing checked out, as landing-pages' `model/verify.sh` does:
 
 ```sh
-EMS="https://raw.githubusercontent.com/jamestryand/eventmodelschema/v4.2.0/schema"
+EMS="https://raw.githubusercontent.com/jamestryand/eventmodelschema/v6.1.1/schema"
 TMP="$(mktemp -d)"; mkdir -p "$TMP/scripts"
 for f in package.json package-lock.json architecture.schema.json eventmodeling.schema.json scripts/architecture-check.js; do
   curl -fsSL "$EMS/$f" -o "$TMP/$f"
@@ -82,5 +82,26 @@ starts it, named once, there. The command must be `public` (the edge needs that 
 generators refuse neither with a private command ("nothing starts it"), and the checker refuses one
 that no internal edge reaches (check `received`). Don't put it on a stand-in screen, and don't call it
 an ingress: an ingress is outside the whole, and this is one of your own systems. Generators (pocketcqrs
-v0.27.0, dotnetcqrs 0.44.0) generate its command and name it in the report; the reaction that sends it
-will come from the edge (the coordinating document's step 4, not built yet).
+v0.27.0, dotnetcqrs 0.44.0) generate its command and name it in the report; what sends it is the edge,
+generated (below).
+
+## An edge's examples, and carrying it (architecture 0.2.0; hub L17)
+
+**Give each internal edge `examples`**: given a source event's data, then the command the receiver sends
+(its target id and fields, exactly). Put the fields that must not cross (an address, a name) in `given`:
+the example then proves they don't. The checker runs them (check `examples`), and so do both generators.
+
+**What crosses is the `edgeMessage`**: the source event's id, system, event and public version, and only
+the fields some internal edge from that event maps. Not either runtime's own event record, so a system on
+either runtime can be on either end.
+
+**Generating it** (pocketcqrs v0.28.0, Go target; dotnetcqrs 0.45.0):
+`schema import <doc> --lang go --out domain --architecture <coordinating doc> --system <id>` (dotnetcqrs:
+`generate ... --architecture ... --system ...`) writes the system's edge tables: the edges into it
+(`EdgesIn`) and the events it publishes (`EdgesOut`). A failing example, an edge's event or command that is
+not public, a target id of several fields, or a personal field on an edge refuses the run.
+
+**Carrying it** is the host's and surface tooling's, never the model's: pocketcqrs-extensions v0.5.0's
+federation takes the tables (`PublisherConfig.Edges`, `IngestConfig.Edges`) over NATS JetStream, one user per
+system, each allowed only its own stream (or only its peer's, to read). The worked case is landing-pages:
+`backend/edges-e2e.sh`, and the n2 trial's `nats-trial`. dotnetcqrs has no carrier of its own yet.
