@@ -197,6 +197,10 @@ generator. The model has only the commands they send. See the boundary section i
 
 ## When something does not work
 
+- **Import refused: "not a valid EventModeling document"** → since v0.22.0 import checks the
+  document against the schema before anything else, and names each problem by its place in the
+  document (in a split document, by file). A key the schema requires and the document leaves out
+  (a view scenario's `caller.subjectId`, say) is refused there. Fix the document; never the check.
 - **File ignored entirely** → directives must be in the **leading comment lines**; anything
   after the first non-comment line is not parsed. A file with no directives is skipped (logged).
 - **Reload refused the decider** → read the report's reason: a name collision with a built-in,
