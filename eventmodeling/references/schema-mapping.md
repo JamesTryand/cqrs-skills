@@ -1,4 +1,4 @@
-# The method in the schema (eventmodelschema 6.0.0)
+# The method in the schema (eventmodelschema 6.1.0)
 
 ## Concept to schema
 
@@ -9,7 +9,7 @@
 | view | `readModels.<id>`: `question`, `builtFromEventIds`, `fields` (derivations), `removedByEventIds` | `question` optional, as above |
 | screen | `screens.<id>`: a name (and `actorLaneId`) | no fields: the storyboard's field lists live in the conversation |
 | processor | `automations.<id>` (a name) and an `automation` slice | |
-| command pattern | slice `pattern: "stateChange"`: `screenId` (or `ingressId`), `commandId`, `eventIds`, `outcomes` | |
+| command pattern | slice `pattern: "stateChange"`: `screenId` (or `ingressId`, or neither), `commandId`, `eventIds`, `outcomes` | neither (6.1.0): another system sends it over an internal edge; the command must be `public` |
 | outside input | `ingresses.<id>`: a name, description, swimlane; a `stateChange` slice's `ingressId` | no source details (6.0.0); something started by time is one too, its command carrying the date |
 | outside output | `outputs.<id>`: `swimlaneId`, `triggerEventIds`, `fields` (what leaves) | 6.0.0; nothing is generated |
 | call out | an automation's `effect` (`swimlaneId`, `gaveUp`): its answer is the slice's command | the call is a source's; the commands are generated |

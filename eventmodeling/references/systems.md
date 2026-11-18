@@ -76,6 +76,11 @@ Each system's own document is still verified on its own with its generator.
   fines system not written yet (a placeholder).
 - landing-pages `model/landing-pages.architecture.json`: personal data and commerce, the real case.
 
-**Open, not settled:** in both, the command a system receives over an internal edge sits on a screen
-in the receiving document, as if a person sent it. Like an outside input, no person sends it. Raise it
-with the user rather than choosing.
+**A command another system sends has no screen and no ingress** (schema 6.1.0; the user's call, hub
+L14). Its `stateChange` slice names neither: the internal edge in the coordinating document is what
+starts it, named once, there. The command must be `public` (the edge needs that anyway); the
+generators refuse neither with a private command ("nothing starts it"), and the checker refuses one
+that no internal edge reaches (check `received`). Don't put it on a stand-in screen, and don't call it
+an ingress: an ingress is outside the whole, and this is one of your own systems. Generators (pocketcqrs
+v0.27.0, dotnetcqrs 0.44.0) generate its command and name it in the report; the reaction that sends it
+will come from the edge (the coordinating document's step 4, not built yet).
