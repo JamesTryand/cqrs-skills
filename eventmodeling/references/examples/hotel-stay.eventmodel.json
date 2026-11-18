@@ -1,0 +1,964 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jamestryand/eventmodelschema/main/schema/eventmodeling.schema.json",
+  "eventModelingSchemaVersion": "4.2.0",
+  "id": "hotel-stay",
+  "name": "Hotel Stay",
+  "description": "The eventmodeling skill's worked example, after Adam Dymitruk's hotel in 'What is Event Modeling?'. A guest books a room for a night, checks in and out; check-out closes the bill (an automation) and puts the room on housekeeping's list; housekeeping's cleaning becomes front desk's 'room ready' (a translation: an automation across lanes). How payment for a closed bill arrives is a hotspot.",
+  "swimlanes": [
+    {
+      "id": "front-desk",
+      "name": "Front Desk",
+      "kind": "team"
+    },
+    {
+      "id": "housekeeping",
+      "name": "Housekeeping",
+      "kind": "team"
+    }
+  ],
+  "events": {
+    "room-night-booked": {
+      "name": "Room Night Booked",
+      "swimlaneId": "front-desk",
+      "aggregate": "roomNight",
+      "description": "A guest has a room for one night. One stream per room and night, so the stream existing is the guard against booking it twice.",
+      "fields": [
+        {
+          "name": "roomNightId",
+          "type": "string",
+          "idAttribute": true,
+          "description": "<roomId>-<night>, so the same room and night is always the same stream."
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "name": "night",
+          "type": "integer",
+          "description": "The night, as yyyymmdd, so a decider can compare it with another date it is given."
+        },
+        {
+          "name": "guestId",
+          "type": "string"
+        }
+      ]
+    },
+    "guest-checked-in": {
+      "name": "Guest Checked In",
+      "swimlaneId": "front-desk",
+      "aggregate": "stay",
+      "fields": [
+        {
+          "name": "stayId",
+          "type": "string",
+          "idAttribute": true
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "name": "guestId",
+          "type": "string"
+        },
+        {
+          "name": "billId",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "type": "string"
+        }
+      ]
+    },
+    "guest-checked-out": {
+      "name": "Guest Checked Out",
+      "swimlaneId": "front-desk",
+      "aggregate": "stay",
+      "description": "Carries the room and the bill, so the views and the automation that follow need nothing else.",
+      "fields": [
+        {
+          "name": "stayId",
+          "type": "string"
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "name": "billId",
+          "type": "string"
+        },
+        {
+          "name": "checkedOutOn",
+          "type": "integer",
+          "description": "yyyymmdd, from the command: a decider never reads the clock."
+        },
+        {
+          "name": "status",
+          "type": "string"
+        }
+      ]
+    },
+    "bill-closed": {
+      "name": "Bill Closed",
+      "swimlaneId": "front-desk",
+      "aggregate": "bill",
+      "description": "Its fields have the names the check-out event gives them: the automation copies the trigger event's fields into the command by name.",
+      "fields": [
+        {
+          "name": "billId",
+          "type": "string",
+          "idAttribute": true
+        },
+        {
+          "name": "stayId",
+          "type": "string"
+        },
+        {
+          "name": "checkedOutOn",
+          "type": "integer"
+        }
+      ]
+    },
+    "room-cleaned": {
+      "name": "Room Cleaned",
+      "swimlaneId": "housekeeping",
+      "aggregate": "cleaning",
+      "fields": [
+        {
+          "name": "cleaningId",
+          "type": "string",
+          "idAttribute": true
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "name": "cleanedBy",
+          "type": "string"
+        }
+      ]
+    },
+    "room-ready": {
+      "name": "Room Ready",
+      "swimlaneId": "front-desk",
+      "aggregate": "roomRelease",
+      "description": "Front desk's own fact that a room may be let again, in its own words: housekeeping's cleaning, translated.",
+      "fields": [
+        {
+          "name": "cleaningId",
+          "type": "string",
+          "idAttribute": true
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "commands": {
+    "book-room-night": {
+      "name": "Book Room Night",
+      "aggregate": "roomNight",
+      "reason": "A guest wants a room for a night.",
+      "requiredRole": [
+        "guest",
+        "front-desk"
+      ],
+      "fields": [
+        {
+          "name": "roomNightId",
+          "type": "string"
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "name": "night",
+          "type": "integer",
+          "description": "The night, as yyyymmdd, so a decider can compare it with another date it is given."
+        },
+        {
+          "name": "guestId",
+          "type": "string"
+        }
+      ]
+    },
+    "check-in-guest": {
+      "name": "Check In Guest",
+      "aggregate": "stay",
+      "reason": "The guest has arrived for a booked night.",
+      "requiredRole": "front-desk",
+      "fields": [
+        {
+          "name": "stayId",
+          "type": "string"
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "name": "guestId",
+          "type": "string"
+        },
+        {
+          "name": "billId",
+          "type": "string"
+        }
+      ]
+    },
+    "check-out-guest": {
+      "name": "Check Out Guest",
+      "aggregate": "stay",
+      "reason": "The guest is leaving; the room needs cleaning and the bill closing.",
+      "requiredRole": "front-desk",
+      "fields": [
+        {
+          "name": "stayId",
+          "type": "string"
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "name": "billId",
+          "type": "string"
+        },
+        {
+          "name": "checkedOutOn",
+          "type": "integer"
+        }
+      ],
+      "refuseWhen": [
+        {
+          "message": "this guest has already checked out",
+          "all": [
+            {
+              "state": "status",
+              "equals": "CheckedOut"
+            }
+          ]
+        }
+      ]
+    },
+    "close-bill": {
+      "name": "Close Bill",
+      "aggregate": "bill",
+      "reason": "A stay has ended, so nothing more can be charged to it.",
+      "requiredRole": "billing",
+      "fields": [
+        {
+          "name": "billId",
+          "type": "string"
+        },
+        {
+          "name": "stayId",
+          "type": "string"
+        },
+        {
+          "name": "checkedOutOn",
+          "type": "integer"
+        }
+      ]
+    },
+    "mark-room-cleaned": {
+      "name": "Mark Room Cleaned",
+      "aggregate": "cleaning",
+      "reason": "A housekeeper has finished a room.",
+      "requiredRole": "housekeeping",
+      "fields": [
+        {
+          "name": "cleaningId",
+          "type": "string"
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "name": "cleanedBy",
+          "type": "string"
+        }
+      ]
+    },
+    "mark-room-ready": {
+      "name": "Mark Room Ready",
+      "aggregate": "roomRelease",
+      "reason": "A cleaned room may be let again.",
+      "requiredRole": "front-desk",
+      "fields": [
+        {
+          "name": "cleaningId",
+          "type": "string"
+        },
+        {
+          "name": "roomId",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "readModels": {
+    "room-status": {
+      "name": "Room Status",
+      "question": "Which rooms are occupied, waiting for cleaning, or ready to let?",
+      "builtFromEventIds": [
+        "guest-checked-in",
+        "guest-checked-out",
+        "room-ready"
+      ],
+      "rowKeyField": "roomId",
+      "requiredRole": "front-desk",
+      "fields": [
+        {
+          "name": "roomId",
+          "type": "string",
+          "idAttribute": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "derivation": {
+            "kind": "byEvent",
+            "values": {
+              "guest-checked-in": "Occupied",
+              "guest-checked-out": "ToClean",
+              "room-ready": "Ready"
+            }
+          }
+        }
+      ]
+    },
+    "rooms-to-clean": {
+      "name": "Rooms To Clean",
+      "question": "Which rooms does housekeeping still have to clean?",
+      "builtFromEventIds": [
+        "guest-checked-out",
+        "room-cleaned"
+      ],
+      "removedByEventIds": [
+        "room-cleaned"
+      ],
+      "rowKeyField": "roomId",
+      "requiredRole": "housekeeping",
+      "fields": [
+        {
+          "name": "roomId",
+          "type": "string",
+          "idAttribute": true
+        },
+        {
+          "name": "checkedOutOn",
+          "type": "integer"
+        }
+      ]
+    }
+  },
+  "screens": {
+    "booking-screen": {
+      "name": "Booking"
+    },
+    "front-desk-screen": {
+      "name": "Front Desk"
+    },
+    "housekeeping-screen": {
+      "name": "Housekeeping"
+    }
+  },
+  "automations": {
+    "bill-closer": {
+      "name": "Bill Closer",
+      "description": "Closes a stay's bill when the guest checks out."
+    },
+    "room-releaser": {
+      "name": "Room Releaser",
+      "description": "Turns housekeeping's 'room cleaned' into front desk's 'room ready'."
+    }
+  },
+  "hotspots": {
+    "how-a-bill-is-paid": {
+      "note": "How does payment for a closed bill arrive? The card processor tells us a payment went through: an outside input, a command no person and no screen sends (decision 0033). Its source (the processor, its webhook, its signature) is not in the model. See the worked example's note on how today's schema expresses it.",
+      "target": {
+        "kind": "slice",
+        "sliceId": "close-bill-slice"
+      },
+      "resolved": false
+    }
+  },
+  "slices": [
+    {
+      "id": "book-room-night-slice",
+      "name": "Book Room Night",
+      "pattern": "stateChange",
+      "swimlaneId": "front-desk",
+      "status": "created",
+      "screenId": "booking-screen",
+      "commandId": "book-room-night",
+      "eventIds": [
+        "room-night-booked"
+      ],
+      "scenarios": [
+        {
+          "id": "a-free-night-is-booked",
+          "name": "A free room night is booked",
+          "kind": "stateChange",
+          "given": [],
+          "when": {
+            "commandId": "book-room-night",
+            "data": {
+              "roomNightId": "r101-20271203",
+              "roomId": "r101",
+              "night": 20271203,
+              "guestId": "g-ana"
+            }
+          },
+          "then": {
+            "events": [
+              {
+                "eventId": "room-night-booked",
+                "data": {
+                  "roomNightId": "r101-20271203",
+                  "roomId": "r101",
+                  "night": 20271203,
+                  "guestId": "g-ana"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "a-booked-night-cannot-be-booked-again",
+          "name": "A night already booked cannot be booked again",
+          "kind": "error",
+          "given": [
+            {
+              "eventId": "room-night-booked",
+              "data": {
+                "roomNightId": "r101-20271203",
+                "roomId": "r101",
+                "night": 20271203,
+                "guestId": "g-ana"
+              }
+            }
+          ],
+          "when": {
+            "commandId": "book-room-night",
+            "data": {
+              "roomNightId": "r101-20271203",
+              "roomId": "r101",
+              "night": 20271203,
+              "guestId": "g-dev"
+            }
+          },
+          "then": {
+            "error": {
+              "message": "room night already exists"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "check-in-guest-slice",
+      "name": "Check In Guest",
+      "pattern": "stateChange",
+      "swimlaneId": "front-desk",
+      "status": "created",
+      "screenId": "front-desk-screen",
+      "commandId": "check-in-guest",
+      "eventIds": [
+        "guest-checked-in"
+      ],
+      "outcomes": [
+        {
+          "eventIds": [
+            "guest-checked-in"
+          ],
+          "set": {
+            "guest-checked-in": {
+              "status": "CheckedIn"
+            }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "a-guest-checks-in",
+          "name": "A guest checks in",
+          "kind": "stateChange",
+          "given": [],
+          "when": {
+            "commandId": "check-in-guest",
+            "data": {
+              "stayId": "s-1",
+              "roomId": "r101",
+              "guestId": "g-ana",
+              "billId": "b-1"
+            }
+          },
+          "then": {
+            "events": [
+              {
+                "eventId": "guest-checked-in",
+                "data": {
+                  "stayId": "s-1",
+                  "roomId": "r101",
+                  "guestId": "g-ana",
+                  "billId": "b-1",
+                  "status": "CheckedIn"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "check-out-guest-slice",
+      "name": "Check Out Guest",
+      "pattern": "stateChange",
+      "swimlaneId": "front-desk",
+      "status": "created",
+      "screenId": "front-desk-screen",
+      "commandId": "check-out-guest",
+      "eventIds": [
+        "guest-checked-out"
+      ],
+      "outcomes": [
+        {
+          "eventIds": [
+            "guest-checked-out"
+          ],
+          "set": {
+            "guest-checked-out": {
+              "status": "CheckedOut"
+            }
+          }
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "a-checked-in-guest-checks-out",
+          "name": "A checked-in guest checks out",
+          "kind": "stateChange",
+          "given": [
+            {
+              "eventId": "guest-checked-in",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "guestId": "g-ana",
+                "billId": "b-1",
+                "status": "CheckedIn"
+              }
+            }
+          ],
+          "when": {
+            "commandId": "check-out-guest",
+            "data": {
+              "stayId": "s-1",
+              "roomId": "r101",
+              "billId": "b-1",
+              "checkedOutOn": 20271204
+            }
+          },
+          "then": {
+            "events": [
+              {
+                "eventId": "guest-checked-out",
+                "data": {
+                  "stayId": "s-1",
+                  "roomId": "r101",
+                  "billId": "b-1",
+                  "checkedOutOn": 20271204,
+                  "status": "CheckedOut"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "checking-out-twice-is-refused",
+          "name": "Checking out twice is refused (the desk treats it as done)",
+          "kind": "error",
+          "given": [
+            {
+              "eventId": "guest-checked-in",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "guestId": "g-ana",
+                "billId": "b-1",
+                "status": "CheckedIn"
+              }
+            },
+            {
+              "eventId": "guest-checked-out",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "billId": "b-1",
+                "checkedOutOn": 20271204,
+                "status": "CheckedOut"
+              }
+            }
+          ],
+          "when": {
+            "commandId": "check-out-guest",
+            "data": {
+              "stayId": "s-1",
+              "roomId": "r101",
+              "billId": "b-1",
+              "checkedOutOn": 20271204
+            }
+          },
+          "then": {
+            "error": {
+              "message": "this guest has already checked out"
+            }
+          }
+        },
+        {
+          "id": "an-unknown-stay-cannot-check-out",
+          "name": "A stay that does not exist cannot check out",
+          "kind": "error",
+          "given": [],
+          "when": {
+            "commandId": "check-out-guest",
+            "data": {
+              "stayId": "s-9",
+              "roomId": "r109",
+              "billId": "b-9",
+              "checkedOutOn": 20271204
+            }
+          },
+          "then": {
+            "error": {
+              "message": "stay does not exist"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "room-status-slice",
+      "name": "Room Status",
+      "pattern": "stateView",
+      "swimlaneId": "front-desk",
+      "status": "created",
+      "screenId": "front-desk-screen",
+      "readModelId": "room-status",
+      "scenarios": [
+        {
+          "id": "a-checked-out-room-waits-for-cleaning",
+          "name": "A checked-out room waits for cleaning; the other stays occupied",
+          "kind": "stateView",
+          "given": [
+            {
+              "eventId": "guest-checked-in",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "guestId": "g-ana",
+                "billId": "b-1",
+                "status": "CheckedIn"
+              }
+            },
+            {
+              "eventId": "guest-checked-in",
+              "data": {
+                "stayId": "s-2",
+                "roomId": "r102",
+                "guestId": "g-ben",
+                "billId": "b-2",
+                "status": "CheckedIn"
+              }
+            },
+            {
+              "eventId": "guest-checked-out",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "billId": "b-1",
+                "checkedOutOn": 20271204,
+                "status": "CheckedOut"
+              }
+            }
+          ],
+          "when": {
+            "readModelId": "room-status",
+            "queryParams": {
+              "roomId": "r101"
+            },
+            "caller": {
+              "subjectId": "clerk-1",
+              "role": "front-desk"
+            }
+          },
+          "then": {
+            "result": {
+              "roomId": "r101",
+              "status": "ToClean"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "close-bill-slice",
+      "name": "Close the bill on check-out",
+      "pattern": "automation",
+      "swimlaneId": "front-desk",
+      "status": "created",
+      "automationId": "bill-closer",
+      "triggerEventIds": [
+        "guest-checked-out"
+      ],
+      "commandId": "close-bill",
+      "resultEventIds": [
+        "bill-closed"
+      ],
+      "scenarios": [
+        {
+          "id": "a-check-out-closes-the-bill",
+          "name": "A check-out closes the stay's bill",
+          "kind": "stateChange",
+          "given": [
+            {
+              "eventId": "guest-checked-out",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "billId": "b-1",
+                "checkedOutOn": 20271204,
+                "status": "CheckedOut"
+              }
+            }
+          ],
+          "when": {
+            "commandId": "close-bill",
+            "data": {
+              "billId": "b-1",
+              "stayId": "s-1",
+              "checkedOutOn": 20271204
+            }
+          },
+          "then": {
+            "events": [
+              {
+                "eventId": "bill-closed",
+                "data": {
+                  "billId": "b-1",
+                  "stayId": "s-1",
+                  "checkedOutOn": 20271204
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "rooms-to-clean-slice",
+      "name": "Rooms To Clean",
+      "pattern": "stateView",
+      "swimlaneId": "housekeeping",
+      "status": "created",
+      "screenId": "housekeeping-screen",
+      "readModelId": "rooms-to-clean",
+      "scenarios": [
+        {
+          "id": "a-checked-out-room-is-on-the-list",
+          "name": "A checked-out room is on the list",
+          "kind": "stateView",
+          "given": [
+            {
+              "eventId": "guest-checked-out",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "billId": "b-1",
+                "checkedOutOn": 20271204,
+                "status": "CheckedOut"
+              }
+            },
+            {
+              "eventId": "guest-checked-out",
+              "data": {
+                "stayId": "s-2",
+                "roomId": "r102",
+                "billId": "b-2",
+                "checkedOutOn": 20271204,
+                "status": "CheckedOut"
+              }
+            }
+          ],
+          "when": {
+            "readModelId": "rooms-to-clean",
+            "queryParams": {
+              "roomId": "r101"
+            },
+            "caller": {
+              "subjectId": "h-cara",
+              "role": "housekeeping"
+            }
+          },
+          "then": {
+            "result": {
+              "roomId": "r101",
+              "checkedOutOn": 20271204
+            }
+          }
+        },
+        {
+          "id": "a-cleaned-room-leaves-the-list",
+          "name": "A cleaned room leaves the list; the other stays",
+          "kind": "stateView",
+          "given": [
+            {
+              "eventId": "guest-checked-out",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "billId": "b-1",
+                "checkedOutOn": 20271204,
+                "status": "CheckedOut"
+              }
+            },
+            {
+              "eventId": "guest-checked-out",
+              "data": {
+                "stayId": "s-2",
+                "roomId": "r102",
+                "billId": "b-2",
+                "checkedOutOn": 20271204,
+                "status": "CheckedOut"
+              }
+            },
+            {
+              "eventId": "room-cleaned",
+              "data": {
+                "cleaningId": "c-1",
+                "roomId": "r101",
+                "cleanedBy": "h-cara"
+              }
+            }
+          ],
+          "when": {
+            "readModelId": "rooms-to-clean",
+            "queryParams": {
+              "roomId": "r102"
+            },
+            "caller": {
+              "subjectId": "h-cara",
+              "role": "housekeeping"
+            }
+          },
+          "then": {
+            "result": {
+              "roomId": "r102",
+              "checkedOutOn": 20271204
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "mark-room-cleaned-slice",
+      "name": "Mark Room Cleaned",
+      "pattern": "stateChange",
+      "swimlaneId": "housekeeping",
+      "status": "created",
+      "screenId": "housekeeping-screen",
+      "commandId": "mark-room-cleaned",
+      "eventIds": [
+        "room-cleaned"
+      ],
+      "scenarios": [
+        {
+          "id": "a-room-is-marked-cleaned",
+          "name": "A housekeeper marks a room cleaned",
+          "kind": "stateChange",
+          "given": [],
+          "when": {
+            "commandId": "mark-room-cleaned",
+            "data": {
+              "cleaningId": "c-1",
+              "roomId": "r101",
+              "cleanedBy": "h-cara"
+            }
+          },
+          "then": {
+            "events": [
+              {
+                "eventId": "room-cleaned",
+                "data": {
+                  "cleaningId": "c-1",
+                  "roomId": "r101",
+                  "cleanedBy": "h-cara"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "room-ready-slice",
+      "name": "A cleaned room is ready to let (translation)",
+      "pattern": "automation",
+      "swimlaneId": "front-desk",
+      "status": "created",
+      "automationId": "room-releaser",
+      "triggerEventIds": [
+        "room-cleaned"
+      ],
+      "commandId": "mark-room-ready",
+      "resultEventIds": [
+        "room-ready"
+      ],
+      "scenarios": [
+        {
+          "id": "a-cleaned-room-becomes-ready",
+          "name": "Housekeeping's cleaning becomes front desk's room ready",
+          "kind": "stateChange",
+          "given": [
+            {
+              "eventId": "room-cleaned",
+              "data": {
+                "cleaningId": "c-1",
+                "roomId": "r101",
+                "cleanedBy": "h-cara"
+              }
+            }
+          ],
+          "when": {
+            "commandId": "mark-room-ready",
+            "data": {
+              "cleaningId": "c-1",
+              "roomId": "r101"
+            }
+          },
+          "then": {
+            "events": [
+              {
+                "eventId": "room-ready",
+                "data": {
+                  "cleaningId": "c-1",
+                  "roomId": "r101"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
