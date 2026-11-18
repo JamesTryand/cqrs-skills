@@ -18,7 +18,8 @@ naming each thing, rather than generated without it. Runtime workflow after gene
   trigger event's fields copied **by name**, to the stream its `targetIdField` names (v0.23.0, schema
   5.0.0; before, a stream derived from the trigger's id, which could not reach an existing stream
   named by a field). Import refuses an automation without the field, or whose field a trigger event
-  or the command (as `idAttribute`) lacks. A redelivery reaches the same stream and is skipped. It
+  or the command (as `idAttribute`) lacks, and (v0.24.0) one whose trigger and command declare a field of one name
+  with different types. A redelivery reaches the same stream and is skipped. It
   never reads the slice's `readModelId`, and says so.
 - **Personal fields** (`pii`): the Go target (`--lang go`) encrypts them; the JS target refuses them.
 - **Not carried into code**: screens, actor lanes, chapters, slice status. Hotspots go to the domain
@@ -47,7 +48,7 @@ go run github.com/jamestryand/pocketcqrs@<version> schema import model.eventmode
   schedules, effects, `elapsed`, `partitionFrom`.
 - **Reads `public`** and generates nothing from it.
 - **An automation** goes to the stream its `targetIdField` names, with the same refusals and the same
-  verify check as pocketcqrs (0.40.0, schema 5.0.0).
+  verify check as pocketcqrs (0.40.0, schema 5.0.0); the copied-field type check from 0.41.0.
 - **verify** compiles the generated code in memory and runs every scenario, authorization before the
   decider, as the host's gateway does.
 

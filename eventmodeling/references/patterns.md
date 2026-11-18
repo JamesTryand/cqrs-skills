@@ -47,7 +47,8 @@ Then   Bill Closed
 events and never reads the to-do view, because a view lags the write side. Draw the view with the
 user (it is the method); then put the facts the command needs on the trigger event, and let the
 target decider refuse what doesn't hold. The generators copy the trigger event's fields into the
-command **by name**. **Say where the command goes** (schema 5.0.0, required): `targetIdField` names
+command **by name**, so a field both declare must have the same type on both (a date string on the
+payment and a yyyymmdd integer on the entitlement was a real bug; the generators refuse it). **Say where the command goes** (schema 5.0.0, required): `targetIdField` names
 a field every trigger event carries, whose value is the target stream's id (here `billId`), and the
 command declares the same field with `idAttribute: true`. Verify fails a scenario whose command
 carries another value, so write the trigger's value into the `when`. Something new for each trigger
