@@ -124,9 +124,12 @@ Each of these produced a real defect in this project.
   file mixing tiers is **refused at load** with `must be single-purpose`. (It used to load
   happily and silently discard the extra trigger — the refusal exists because that left a cron
   job that simply never ran.) Split them.
-- **Reactor target ids must derive from the source event.** Delivery is at-least-once, so a
-  redelivery must dispatch the *same* command to the *same* id and be rejected as a duplicate
-  ("already exists"). `id: 'fulfil-' + event.aggregateId`, never a random or time-based id.
+- **Reactor target ids come from the source event.** Delivery is at-least-once, so a
+  redelivery must dispatch the *same* command to the *same* id, where the runtime skips a
+  reaction already applied. A generated reactor sends to `event.data[<field>]`, the field the
+  model names (`targetIdField`, v0.23.0 and eventmodelschema 5.0.0), and declares it with
+  `//@target <field>`; the event must carry the value, or the reaction is dropped, said. Never
+  a random or time-based id.
 - **`//@trigger reactor`, not `react`.** And the function is `reactTo(event)`.
 - **A JS decider cannot take a name a Go decider already has.** The reload refuses it and says
   so. Under `--tutorial`, `task` and `order` are taken.

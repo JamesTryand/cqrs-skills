@@ -95,9 +95,11 @@ The domain model is a directed graph. Messages cross its boundary in **three sha
    Declare it (`removedByEventIds` in schema ≥ 3.9.0), don't hand-write it, and give it a
    scenario. Deleting an entry, unassigning someone or revoking a grant is a removal. A row
    left behind is a stale grant or a deleted thing that still counts.
-6. **Automations react to events and dispatch commands.** They are idempotent, with
-   deterministic target ids derived from the triggering *event*, not from its stream. They
-   never write read models. When an automation needs state (running totals, thresholds,
+6. **Automations react to events and dispatch commands.** They are idempotent. Their
+   target is the stream a field of the triggering event names, and the model says which
+   field (`targetIdField`, eventmodelschema 5.0.0; the command declares it as its identity):
+   the same stream a command sent directly with that id reaches, never a random id or one
+   made up from the event's own id. They never write read models. When an automation needs state (running totals, thresholds,
    recipients), it **folds its own state from the events, in order** (a process manager).
    It never queries a projection, because a projection may already be ahead of or behind
    the event being handled.

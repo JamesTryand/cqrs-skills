@@ -15,8 +15,11 @@ naming each thing, rather than generated without it. Runtime workflow after gene
   lanes.
 - **Reads `public`** (4.2.0) and generates nothing from it.
 - **An automation** becomes a reactor on the trigger events. It dispatches the command with the
-  trigger event's fields copied **by name**, to a stream whose id derives from the trigger event, so a
-  redelivery hits "already exists". It never reads the slice's `readModelId`, and says so.
+  trigger event's fields copied **by name**, to the stream its `targetIdField` names (v0.23.0, schema
+  5.0.0; before, a stream derived from the trigger's id, which could not reach an existing stream
+  named by a field). Import refuses an automation without the field, or whose field a trigger event
+  or the command (as `idAttribute`) lacks. A redelivery reaches the same stream and is skipped. It
+  never reads the slice's `readModelId`, and says so.
 - **Personal fields** (`pii`): the Go target (`--lang go`) encrypts them; the JS target refuses them.
 - **Not carried into code**: screens, actor lanes, chapters, slice status. Hotspots go to the domain
   document.
@@ -24,7 +27,9 @@ naming each thing, rather than generated without it. Runtime workflow after gene
   example data is compared too, and a difference is reported as a note, not a failure ("would append
   X, but the example data differs"). An `error` scenario passes only on its own message. A command
   scenario runs the command's authorization first, over views built from its given events. An
-  automation scenario's given event from another aggregate is the trigger, said in brackets.
+  automation scenario's given event from another aggregate is the trigger, said in brackets; it runs
+  on the stream the trigger names, and fails if its command carries another value for the field or
+  it shows no trigger (v0.23.0).
 - **The report** before the scenarios lists every decision taken on the document's behalf ("integer
   becomes number", "read model folds events from 2 aggregates") and what was not carried across. Read
   it out to the user.
@@ -41,6 +46,8 @@ go run github.com/jamestryand/pocketcqrs@<version> schema import model.eventmode
 - **Refuses** what it does not implement: ingresses, partitioning, `selfAccess.via`, delays,
   schedules, effects, `elapsed`, `partitionFrom`.
 - **Reads `public`** and generates nothing from it.
+- **An automation** goes to the stream its `targetIdField` names, with the same refusals and the same
+  verify check as pocketcqrs (0.40.0, schema 5.0.0).
 - **verify** compiles the generated code in memory and runs every scenario, authorization before the
   decider, as the host's gateway does.
 
@@ -53,6 +60,11 @@ dotnet tool install --tool-path <dir> JamesTryand.DotnetCqrs.Codegen.Cli --versi
 `dotnetcqrs-domain`.)
 
 ## The hotel example, as checked on 2026-11-18
+
+**Again on 2026-11-18, at schema 5.0.0** (`targetIdField`: `billId` for Close Bill, `cleaningId` for
+Room Ready): 13 of 13 on pocketcqrs v0.23.0 (JS and Go) and dotnetcqrs 0.40.0. Before it, Close Bill's
+reactor sent to a stream made from the stay (`close-bill-<stay>`), not the bill's own; every scenario
+passed regardless. The first check:
 
 13 scenarios, 13 passed, no HAND, on: pocketcqrs v0.21.0 (released, JS); the pocketcqrs build that
 became v0.22.0 (JS and `--lang go`); dotnetcqrs 0.39.0 (released). The report's decisions, all

@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/jamestryand/eventmodelschema/main/schema/eventmodeling.schema.json",
-  "eventModelingSchemaVersion": "4.2.0",
+  "eventModelingSchemaVersion": "5.0.0",
   "id": "hotel-stay",
   "name": "Hotel Stay",
   "description": "The eventmodeling skill's worked example, after Adam Dymitruk's hotel in 'What is Event Modeling?'. A guest books a room for a night, checks in and out; check-out closes the bill (an automation) and puts the room on housekeeping's list; housekeeping's cleaning becomes front desk's 'room ready' (a translation: an automation across lanes). How payment for a closed bill arrives is a hotspot.",
@@ -256,7 +256,8 @@
       "fields": [
         {
           "name": "billId",
-          "type": "string"
+          "type": "string",
+          "idAttribute": true
         },
         {
           "name": "stayId",
@@ -296,7 +297,8 @@
       "fields": [
         {
           "name": "cleaningId",
-          "type": "string"
+          "type": "string",
+          "idAttribute": true
         },
         {
           "name": "roomId",
@@ -752,6 +754,7 @@
       "triggerEventIds": [
         "guest-checked-out"
       ],
+      "targetIdField": "billId",
       "commandId": "close-bill",
       "resultEventIds": [
         "bill-closed"
@@ -951,6 +954,7 @@
       "triggerEventIds": [
         "room-cleaned"
       ],
+      "targetIdField": "cleaningId",
       "commandId": "mark-room-ready",
       "resultEventIds": [
         "room-ready"

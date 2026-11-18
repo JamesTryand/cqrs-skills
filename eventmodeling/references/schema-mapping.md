@@ -1,4 +1,4 @@
-# The method in the schema (eventmodelschema 4.2.0)
+# The method in the schema (eventmodelschema 5.0.0)
 
 ## Concept to schema
 
@@ -11,7 +11,7 @@
 | processor | `automations.<id>` (a name) and an `automation` slice | |
 | command pattern | slice `pattern: "stateChange"`: `screenId` (or `ingressId`), `commandId`, `eventIds`, `outcomes` | |
 | view pattern | slice `pattern: "stateView"`: `screenId`, `readModelId` | |
-| automation pattern | slice `pattern: "automation"`: `automationId`, `triggerEventIds`, `commandId`, `resultEventIds` | `readModelId` optional; generators don't read it |
+| automation pattern | slice `pattern: "automation"`: `automationId`, `triggerEventIds`, `targetIdField` (5.0.0, required with triggers), `commandId`, `resultEventIds` | `readModelId` optional; generators don't read it |
 | translation | an automation whose trigger events are in another lane | removed as a pattern in schema 2.0 |
 | swimlanes | `swimlanes[]`, `kind: "team"` or `"system"` | who owns the events |
 | people on the storyboard | `actorLanes` | notation only |
@@ -48,8 +48,9 @@
 - Translation as its own pattern: an automation across lanes.
 - The methodology rules (a reason, a question, the anti-patterns): judgement, in `method.md`'s
   checklist. What a generator can check, it checks.
-- Starting an automation on a field's value: `triggerEventIds` names events only. Either split the
-  event, or let the target decider refuse what doesn't apply; the choice is the user's.
+- Starting an automation on a field's value: `triggerEventIds` names events only, and there is no
+  filter on purpose (hub L15, 2026-11-18). Split the event into business events, one per meaning,
+  each with its own command and automation.
 
 ## The schema has it, the method doesn't
 

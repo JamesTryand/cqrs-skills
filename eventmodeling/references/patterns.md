@@ -46,9 +46,13 @@ Then   Bill Closed
 **Against the generators** (cqrs-patterns rule 6): the generated reactor reacts to the trigger
 events and never reads the to-do view, because a view lags the write side. Draw the view with the
 user (it is the method); then put the facts the command needs on the trigger event, and let the
-target decider refuse what doesn't hold. pocketcqrs copies the trigger event's fields into the
-command **by name**, and derives the target stream's id from the trigger event, so a redelivery hits
-"already exists" instead of acting twice. Give `readModelId` only if a person also looks at the view.
+target decider refuse what doesn't hold. The generators copy the trigger event's fields into the
+command **by name**. **Say where the command goes** (schema 5.0.0, required): `targetIdField` names
+a field every trigger event carries, whose value is the target stream's id (here `billId`), and the
+command declares the same field with `idAttribute: true`. Verify fails a scenario whose command
+carries another value, so write the trigger's value into the `when`. Something new for each trigger
+event (a notification per comment) needs that new thing's id on the trigger. A redelivery reaches the
+same stream, where the runtime skips it. Give `readModelId` only if a person also looks at the view.
 
 An automation started by time is a command that carries "today" (see `boundary.md`); the length of
 a delay is model data (the user, hub I1).
