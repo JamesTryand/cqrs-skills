@@ -142,8 +142,10 @@ host").
 - **`dataSubjects.erasure`** (3.2.0, 3.7.1): who may send `RequestErasure` (`self`, `roles`, `self`
   through `via`). The generated `AuthorizeAsync` refuses every other `dataSubject` command, and all of
   them without the declaration; a host allows holds, approvals or direct erasure in its own delegate.
-- **The generator refuses** schema features it doesn't implement (ingresses,
-  partitioning, `selfAccess.via`, timers, effects) rather than ignoring them.
+- **The generator refuses** schema features it doesn't implement (partitioning,
+  `selfAccess.via`) rather than ignoring them. From 0.42.0 (schema 6.0.0) it reads the boundary:
+  an ingress-started slice's command is generated, a delayed or calling-out automation's commands
+  are generated without a reaction (its source fires it), and an output generates nothing.
 
 ## Known gaps (don't rely on them)
 

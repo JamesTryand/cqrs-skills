@@ -1,4 +1,4 @@
-# The method in the schema (eventmodelschema 5.0.0)
+# The method in the schema (eventmodelschema 6.0.0)
 
 ## Concept to schema
 
@@ -10,8 +10,11 @@
 | screen | `screens.<id>`: a name (and `actorLaneId`) | no fields: the storyboard's field lists live in the conversation |
 | processor | `automations.<id>` (a name) and an `automation` slice | |
 | command pattern | slice `pattern: "stateChange"`: `screenId` (or `ingressId`), `commandId`, `eventIds`, `outcomes` | |
+| outside input | `ingresses.<id>`: a name, description, swimlane; a `stateChange` slice's `ingressId` | no source details (6.0.0); something started by time is one too, its command carrying the date |
+| outside output | `outputs.<id>`: `swimlaneId`, `triggerEventIds`, `fields` (what leaves) | 6.0.0; nothing is generated |
+| call out | an automation's `effect` (`swimlaneId`, `gaveUp`): its answer is the slice's command | the call is a source's; the commands are generated |
 | view pattern | slice `pattern: "stateView"`: `screenId`, `readModelId` | |
-| automation pattern | slice `pattern: "automation"`: `automationId`, `triggerEventIds`, `targetIdField` (5.0.0, required with triggers), `commandId`, `resultEventIds` | `readModelId` optional; generators don't read it |
+| automation pattern | slice `pattern: "automation"`: `automationId`, `triggerEventIds`, `targetIdField` (5.0.0), `commandId`, `resultEventIds`; optionally `delay` (its length) or `effect` | `readModelId` optional; generators don't read it |
 | translation | an automation whose trigger events are in another lane | removed as a pattern in schema 2.0 |
 | swimlanes | `swimlanes[]`, `kind: "team"` or `"system"` | who owns the events |
 | people on the storyboard | `actorLanes` | notation only |

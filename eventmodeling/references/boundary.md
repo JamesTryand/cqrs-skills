@@ -32,20 +32,19 @@ and ask the user (hub decision `0033`).
   the reverse.
 - **No new lint tool**: checks a generator can make go into its own document check.
 
-## What today's schema and generators still lack
+## In the schema (6.0.0) and the generators (pocketcqrs v0.25.0, dotnetcqrs 0.42.0)
 
-The schema change for the above is approved but not built (hub `LATER.md`). Until it is:
-
-- **An outside input** can only be written as an `ingress` on a `stateChange` slice, and the schema
-  requires the ingress to carry `verification` and `deliveryIdField`, which are source details. Don't
-  fill them in: that teaches a model to carry its source. Both generators refuse ingresses anyway.
-  So a document that must generate today leaves the outside input's slice out, marks it as a hotspot,
-  and the conversation shows the command as what it is: a command with no screen and no person sending
-  it. The hotel example does this for "payment arrived".
-- **Never put an outside input on a stand-in screen** as if a person sent it (the user, hub L5). The
-  commerce model in landing-pages did, and is to be corrected (hub L10: our own automation sends it,
-  model an automation; an outside system sends it, model an outside input).
-- **Delays, schedules, effects and `elapsed`** are in the schema but refused by both generators.
+- **An outside input** is an `ingress` (a name, a description, a swimlane) on a `stateChange` slice.
+  Its command is generated like any other; the ingress itself generates nothing. Something started by
+  time is one too: its command carries today's date. The hotel example's "payment arrived" is the
+  `card-processor` ingress.
+- **An outside output** is an `outputs` entry: the events after which it leaves, and the fields that
+  leave (personal data shows). Nothing is generated; the generators check each field is on every
+  trigger event. landing-pages' confirmation mails are outputs.
+- **A call out** is an automation's `effect`; **a wait** is its `delay` (the length only). Their
+  commands are generated, the answer and give-up for a call, but no reactor: the source fires them.
+- **Never put an outside input on a stand-in screen** as if a person sent it (the user, hub L5).
+  landing-pages' commerce model did; corrected 2026-11-18 (hub L10).
 
 ## How the method's patterns land
 

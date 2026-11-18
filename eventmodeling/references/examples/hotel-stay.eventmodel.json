@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/jamestryand/eventmodelschema/main/schema/eventmodeling.schema.json",
-  "eventModelingSchemaVersion": "5.0.0",
+  "eventModelingSchemaVersion": "6.0.0",
   "id": "hotel-stay",
   "name": "Hotel Stay",
   "description": "The eventmodeling skill's worked example, after Adam Dymitruk's hotel in 'What is Event Modeling?'. A guest books a room for a night, checks in and out; check-out closes the bill (an automation) and puts the room on housekeeping's list; housekeeping's cleaning becomes front desk's 'room ready' (a translation: an automation across lanes). How payment for a closed bill arrives is a hotspot.",
@@ -158,6 +158,26 @@
           "type": "string"
         }
       ]
+    },
+    "bill-paid": {
+      "name": "Bill Paid",
+      "swimlaneId": "front-desk",
+      "aggregate": "bill",
+      "fields": [
+        {
+          "name": "billId",
+          "type": "string",
+          "idAttribute": true
+        },
+        {
+          "name": "amount",
+          "type": "integer"
+        },
+        {
+          "name": "paidOn",
+          "type": "integer"
+        }
+      ]
     }
   },
   "commands": {
@@ -305,6 +325,27 @@
           "type": "string"
         }
       ]
+    },
+    "record-bill-paid": {
+      "name": "Record Bill Paid",
+      "aggregate": "bill",
+      "reason": "The card processor says the guest's payment went through.",
+      "requiredRole": "payments",
+      "fields": [
+        {
+          "name": "billId",
+          "type": "string",
+          "idAttribute": true
+        },
+        {
+          "name": "amount",
+          "type": "integer"
+        },
+        {
+          "name": "paidOn",
+          "type": "integer"
+        }
+      ]
     }
   },
   "readModels": {
@@ -374,6 +415,13 @@
       "name": "Housekeeping"
     }
   },
+  "ingresses": {
+    "card-processor": {
+      "name": "Card Processor",
+      "description": "The card processor says a guest's payment went through. No person and no screen sends it; the processor, its webhook and its signature are its source, configured in surface tooling.",
+      "swimlaneId": "front-desk"
+    }
+  },
   "automations": {
     "bill-closer": {
       "name": "Bill Closer",
@@ -386,12 +434,12 @@
   },
   "hotspots": {
     "how-a-bill-is-paid": {
-      "note": "How does payment for a closed bill arrive? The card processor tells us a payment went through: an outside input, a command no person and no screen sends (decision 0033). Its source (the processor, its webhook, its signature) is not in the model. See the worked example's note on how today's schema expresses it.",
+      "note": "How does payment for a closed bill arrive? The card processor tells us a payment went through: an outside input, a command no person and no screen sends (decision 0033). Its source (the processor, its webhook, its signature) is not in the model. See the worked example's note on how today's schema expresses it. Resolved with schema 6.0.0: an ingress names the message and nothing about its source, so Record Bill Paid is a slice started by the card-processor ingress.",
       "target": {
         "kind": "slice",
         "sliceId": "close-bill-slice"
       },
-      "resolved": false
+      "resolved": true
     }
   },
   "slices": [
@@ -991,6 +1039,74 @@
                 }
               }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "record-bill-paid-slice",
+      "name": "Record a paid bill",
+      "pattern": "stateChange",
+      "swimlaneId": "front-desk",
+      "status": "created",
+      "ingressId": "card-processor",
+      "commandId": "record-bill-paid",
+      "eventIds": [
+        "bill-paid"
+      ],
+      "scenarios": [
+        {
+          "id": "a-closed-bill-is-paid",
+          "name": "The processor says a closed bill was paid",
+          "kind": "stateChange",
+          "given": [
+            {
+              "eventId": "bill-closed",
+              "data": {
+                "billId": "b-1",
+                "stayId": "s-1",
+                "checkedOutOn": 20271204
+              }
+            }
+          ],
+          "when": {
+            "commandId": "record-bill-paid",
+            "data": {
+              "billId": "b-1",
+              "amount": 24000,
+              "paidOn": 20271205
+            }
+          },
+          "then": {
+            "events": [
+              {
+                "eventId": "bill-paid",
+                "data": {
+                  "billId": "b-1",
+                  "amount": 24000,
+                  "paidOn": 20271205
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "an-unknown-bill-cannot-be-paid",
+          "name": "A payment for a bill that does not exist is refused",
+          "kind": "error",
+          "given": [],
+          "when": {
+            "commandId": "record-bill-paid",
+            "data": {
+              "billId": "b-9",
+              "amount": 24000,
+              "paidOn": 20271205
+            }
+          },
+          "then": {
+            "error": {
+              "message": "bill does not exist"
+            }
           }
         }
       ]

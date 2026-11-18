@@ -61,9 +61,9 @@ The domain model is a directed graph. Messages cross its boundary in **three sha
   firing it is a source's job. Delays are not cancelled by events: the decider's guards make a late
   message harmless. Scenarios have no "time passes" step: send a command with a later date. A
   message that leaves with no answer is a shape of its own, not an effect with an optional answer.
-  Approved 2026-11-15 but not built: the schema drops those two and moves `schedule.cron`/`timeZone`
-  and an ingress's `verification`/`deliveryIdField` out to surface tooling. Until then, don't use any
-  of them.
+  Built in eventmodelschema 6.0.0 (2026-11-18): those two are gone, as are `schedule` and an
+  ingress's `verification`/`deliveryIdField`; a message that leaves is an `outputs` entry. Something
+  started by time is an outside input whose command carries today's date.
 - **Two documents, joined by message ids (the user, 2026-11-15).** The event model holds only
   model parts. Surface tooling's own description holds the sources (schedule, webhook adapter,
   signature check, host, secrets) and names the model's messages by id, never the reverse.
@@ -97,7 +97,7 @@ The domain model is a directed graph. Messages cross its boundary in **three sha
    left behind is a stale grant or a deleted thing that still counts.
 6. **Automations react to events and dispatch commands.** They are idempotent. Their
    target is the stream a field of the triggering event names, and the model says which
-   field (`targetIdField`, eventmodelschema 5.0.0; the command declares it as its identity):
+   field (`targetIdField`, eventmodelschema 5.0.0 on; the command declares it as its identity):
    the same stream a command sent directly with that id reaches, never a random id or one
    made up from the event's own id. They never write read models. When an automation needs state (running totals, thresholds,
    recipients), it **folds its own state from the events, in order** (a process manager).

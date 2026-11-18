@@ -133,11 +133,11 @@ through. No person and no screen sends it (decision 0033). As a command it is si
 Its sender has its own role (`payments`), not a superuser's. The processor, its webhook and its
 signature are its source, configured in surface tooling, never here.
 
-**Today's schema** can only put this command on a slice through an `ingress`, which the schema requires
-to carry two source details (`verification`, `deliveryIdField`); both move out of the schema (the
-user, hub I5; approved, not built yet), and both generators refuse ingresses. So the document leaves
-the slice out, and keeps the question as a hotspot on the close-bill slice. It is never put on a
-stand-in screen as if a clerk sent it.
+**In the document** (schema 6.0.0) it is a `stateChange` slice started by the `card-processor`
+ingress: a name and a swimlane, nothing about its source. Two scenarios: a closed bill is paid, and a
+payment for a bill that doesn't exist is refused. It is never put on a stand-in screen as if a clerk
+sent it. (Before 6.0.0 an ingress had to carry source details, so the slice was left out and the
+question kept as a hotspot, now resolved.)
 
 ## Systems?
 

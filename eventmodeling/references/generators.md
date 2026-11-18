@@ -9,8 +9,11 @@ naming each thing, rather than generated without it. Runtime workflow after gene
 - **Checks the document against the schema first** (v0.22.0 and later), and names each problem by its
   place (in a split document, by file). Older releases refused only keys they don't read, so a
   missing required key (a view scenario's `caller.subjectId`) went through.
-- **Refuses keys it does not read**, naming each: today `selfAccess.via`, ingresses, delays,
-  schedules, `elapsed`, `effect`, partitioning.
+- **Refuses keys it does not read**, naming each: today `selfAccess.via` and partitioning.
+- **Reads the boundary** (v0.25.0, schema 6.0.0): an ingress-started slice's command is generated;
+  an automation with a `delay`, or an `effect` (its answer and give-up), gets its commands but no
+  reactor, since its source fires it; an output generates nothing, and each field it names must be on
+  its trigger events. The report names each.
 - **Every command and event needs an `aggregate`** (or `--aggregate id=name`); it won't guess from
   lanes.
 - **Reads `public`** (4.2.0) and generates nothing from it.
@@ -44,8 +47,8 @@ go run github.com/jamestryand/pocketcqrs@<version> schema import model.eventmode
 
 - **Checks the document against its copy of the schema** (4.2.0 from v0.39.0), naming each problem
   (from v0.39.1, only what to fix; before, every failing branch of the schema too).
-- **Refuses** what it does not implement: ingresses, partitioning, `selfAccess.via`, delays,
-  schedules, effects, `elapsed`, `partitionFrom`.
+- **Refuses** what it does not implement: partitioning, `selfAccess.via`, `partitionFrom`.
+- **Reads the boundary** as pocketcqrs does (0.42.0, schema 6.0.0).
 - **Reads `public`** and generates nothing from it.
 - **An automation** goes to the stream its `targetIdField` names, with the same refusals and the same
   verify check as pocketcqrs (0.40.0, schema 5.0.0); the copied-field type check from 0.41.0.
@@ -61,6 +64,9 @@ dotnet tool install --tool-path <dir> JamesTryand.DotnetCqrs.Codegen.Cli --versi
 `dotnetcqrs-domain`.)
 
 ## The hotel example, as checked on 2026-11-18
+
+**At schema 6.0.0** (Record Bill Paid, started by the `card-processor` ingress): 15 of 15 on pocketcqrs
+v0.25.0 (JS and Go) and dotnetcqrs 0.42.0.
 
 **Again on 2026-11-18, at schema 5.0.0** (`targetIdField`: `billId` for Close Bill, `cleaningId` for
 Room Ready): 13 of 13 on pocketcqrs v0.23.0 (JS and Go) and dotnetcqrs 0.40.0. Before it, Close Bill's
