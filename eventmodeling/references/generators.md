@@ -12,7 +12,8 @@ naming each thing, rather than generated without it. Runtime workflow after gene
 - **Refuses keys it does not read**, naming each: today `selfAccess.via` and partitioning.
 - **Reads the boundary** (v0.25.0, schema 6.0.0): an ingress-started slice's command is generated;
   an automation with a `delay`, or an `effect` (its answer and give-up), gets its commands but no
-  reactor, since its source fires it; an output generates nothing, and each field it names must be on
+  reactor, since its source fires it. Several commands may begin a stream (v0.26.0, dotnetcqrs 0.43.0):
+  an effect's answer and give-up both do, so whichever comes first wins and the other is refused; an output generates nothing, and each field it names must be on
   its trigger events. The report names each.
 - **Every command and event needs an `aggregate`** (or `--aggregate id=name`); it won't guess from
   lanes.
