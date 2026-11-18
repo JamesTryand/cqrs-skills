@@ -71,7 +71,8 @@ fact, in its own words.
 
 `bill`, `cleaning` and `roomRelease` each have one command that starts the stream and refuses a
 second ("bill already exists", and so on): a two-row table each, written out with the user all the
-same.
+same. That refusal is the generators' own "already exists" rule, which the book-twice and
+check-in-twice scenarios exercise; a real model gives each its own scenario.
 
 Checks: every pair answered; every state reachable; each terminal state refuses everything by name;
 every event named is produced. Checking out twice is a named refusal the desk treats as done, not a
@@ -87,10 +88,10 @@ booked. That fact is in another stream (`roomNight`), and a decider sees only it
 hold, the booking and the stay become one stream, or something that folds both decides. Here it is a
 known gap, not a guess.
 
-## 7. Scenarios (12)
+## 7. Scenarios (13)
 
 - Book: a free night is booked; a booked night can't be booked again ("room night already exists").
-- Check in: a guest checks in.
+- Check in: a guest checks in; checking in twice is refused ("stay already exists").
 - Check out: a checked-in guest checks out; twice is refused; an unknown stay is refused.
 - Room Status: with two guests in and one checked out, the checked-out room is ToClean (the other
   room's rows are there, so the scenario could fail).
@@ -148,4 +149,4 @@ marked `public`, and the translation would become an internal edge in a coordina
 ## The document, checked
 
 The JSON is written last: `examples/hotel-stay.eventmodel.json`. Its results are in `generators.md`:
-12 of 12 scenarios pass on pocketcqrs (JS and Go) and dotnetcqrs, with no hand-written code.
+13 of 13 scenarios pass on pocketcqrs (JS and Go) and dotnetcqrs, with no hand-written code.

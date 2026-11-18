@@ -517,6 +517,37 @@
               }
             ]
           }
+        },
+        {
+          "id": "a-stay-cannot-check-in-twice",
+          "name": "A stay cannot check in twice (the desk treats it as done)",
+          "kind": "error",
+          "given": [
+            {
+              "eventId": "guest-checked-in",
+              "data": {
+                "stayId": "s-1",
+                "roomId": "r101",
+                "guestId": "g-ana",
+                "billId": "b-1",
+                "status": "CheckedIn"
+              }
+            }
+          ],
+          "when": {
+            "commandId": "check-in-guest",
+            "data": {
+              "stayId": "s-1",
+              "roomId": "r101",
+              "guestId": "g-ana",
+              "billId": "b-1"
+            }
+          },
+          "then": {
+            "error": {
+              "message": "stay already exists"
+            }
+          }
         }
       ]
     },

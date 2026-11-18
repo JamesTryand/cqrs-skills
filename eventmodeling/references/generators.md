@@ -54,7 +54,7 @@ dotnet tool install --tool-path <dir> JamesTryand.DotnetCqrs.Codegen.Cli --versi
 
 ## The hotel example, as checked on 2026-11-18
 
-12 scenarios, 12 passed, no HAND, on: pocketcqrs v0.21.0 (released, JS); the pocketcqrs build that
+13 scenarios, 13 passed, no HAND, on: pocketcqrs v0.21.0 (released, JS); the pocketcqrs build that
 became v0.22.0 (JS and `--lang go`); dotnetcqrs 0.39.0 (released). The report's decisions, all
 expected: dates as `yyyymmdd` integers become numbers; the two views each fold events from two
 aggregates (their projection is generated under one of them and listens to all); one hotspot, three
