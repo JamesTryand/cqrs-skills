@@ -210,8 +210,10 @@ JetStream, `JamesTryand.DotnetCqrs.Edges.Nats`:
 - **Receiving:** one `new EdgeIngest(js, peer, SystemEdgeTables.In.Where(e => e.FromSystem == peer), registry,
   deadLetterStore).RunAsync(stopping)` per peer. It applies, then acknowledges, with a command id from the message
   and the edge, so a redelivery is skipped. A refusal is acknowledged; a conflict or a failure around the decision
-  is redelivered after a pause, then dead-lettered; an unknown aggregate is dead-lettered; a version no edge names is
-  skipped (deploy a version change receiver first).
+  is redelivered after a pause, then dead-lettered; an unknown aggregate is dead-lettered. Since 0.47.0 a newer
+  version than the edges name is held (`EdgeRetry.Hold`) until a receiver names it, so a version change can deploy its
+  sender first; an older version or an unknown event is skipped, so keep the old version's edge in the document while a
+  version changes.
 - **Connection:** `EdgesNatsConnection.Open(url, user, password, name)` keeps trying while the carrier is down, so
   the host starts and serves anyway. Wire both only on a writer (`!isReader`), and only when configured.
 - Wire-compatible with pocketcqrs-extensions' federation: a pocketcqrs and a dotnetcqrs system share an edge either

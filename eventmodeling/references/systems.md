@@ -108,3 +108,8 @@ system, each allowed only its own stream (or only its peer's, to read). The work
 `JamesTryand.DotnetCqrs.Edges.Nats` (`EdgePublisher`, `EdgeIngest`): the same subjects, stream, durable consumer and
 command ids as federation, so either runtime can be on either end of an edge (checked both ways, through the
 carrier image with its per-system users, 2026-11-19).
+
+**Changing a public event's version** (federation v0.6.0, dotnetcqrs 0.47.0): a receiver holds a newer version than its
+edges name until one names it, and skips an older one. So deploy the sender first, or keep the old version's edge in the
+coordinating document until every sender has moved: a receiver deployed first, naming only the new version, skips what
+an old sender still sends.
