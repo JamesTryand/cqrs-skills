@@ -116,6 +116,11 @@ version bump. It still ships as one binary: all of pocketcqrs with the domains c
 
 Each of these produced a real defect in this project.
 
+- **`schema verify --functions <dir>` passes a slice whose file is missing.** A scenario whose decider or
+  projection file does not exist yet is shown `–` ("the host has no decider") and verify still exits 0
+  (v0.29.0). So "write the scenario and watch it fail" does not happen before `schema import`: import, then
+  break the generated rule (drop the refusal, drop a projected field) and see verify exit 1, then restore it.
+  Read the summary line: `0 skipped` is the pass you want.
 - **A projection returning plain objects writes nothing, forever.** `project()` must return
   **row ops** — `{ upsert: { key, fields } }` or `{ delete: <keyval> }` — not the row. Anything
   else is counted and logged as discarded, but the collection just stays empty. If a projection
