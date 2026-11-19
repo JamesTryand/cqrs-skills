@@ -104,4 +104,7 @@ not public, a target id of several fields, or a personal field on an edge refuse
 **Carrying it** is the host's and surface tooling's, never the model's: pocketcqrs-extensions v0.5.0's
 federation takes the tables (`PublisherConfig.Edges`, `IngestConfig.Edges`) over NATS JetStream, one user per
 system, each allowed only its own stream (or only its peer's, to read). The worked case is landing-pages:
-`backend/edges-e2e.sh`, and the n2 trial's `nats-trial`. dotnetcqrs has no carrier of its own yet.
+`backend/edges-e2e.sh`, and the n2 trial's `nats-trial`. dotnetcqrs (0.46.0) carries them too, with
+`JamesTryand.DotnetCqrs.Edges.Nats` (`EdgePublisher`, `EdgeIngest`): the same subjects, stream, durable consumer and
+command ids as federation, so either runtime can be on either end of an edge (checked both ways, through the
+carrier image with its per-system users, 2026-11-19).

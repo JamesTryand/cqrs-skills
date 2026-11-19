@@ -58,7 +58,8 @@ host").
   JamesTryand.DotnetCqrs.Codegen.Cli --version <v>`, then `dotnet tool run dotnetcqrs-codegen
   generate --host ...`.
 - **What it writes:** the `.csproj` references `JamesTryand.DotnetCqrs`, `.Host`, `.Codegen`,
-  `.Crypto`, `.Postgres` and `.Telemetry.Nats` at the generator's own version. The tool
+  `.Crypto`, `.Postgres` and `.Telemetry.Nats` at the generator's own version (a host that carries edges adds
+  `.Edges.Nats` itself, at the same version: the generator names no carrier). The tool
   manifest `dotnet tool` finds (the nearest at or above the project, or a new
   `.config/dotnet-tools.json`) gets the generator pinned at that same version; other tools in
   it are kept. One version pins the generator and the libraries together.
@@ -196,6 +197,25 @@ section in `cqrs-patterns`.
   the wiring `generate --host` writes (0.36.0) keeps that refusal.
   The generated `CommandAuthorization` admits only `RequestErasure`, as the document's
   `dataSubjects.erasure` says; never return true for a `dataSubject` command you have no rule for.
+
+## Carrying a system's edges (0.46.0)
+
+`generate --architecture <doc> --system <id>` writes `Edges.g.cs` (`Generated.SystemEdgeTables.In`/`.Out`); the
+carrier is the host's, wired by hand from its own configuration, never the generator's (decision 0033). Over NATS
+JetStream, `JamesTryand.DotnetCqrs.Edges.Nats`:
+
+- **Sending:** `engine.Register(new EdgePublisher(js, system, SystemEdgeTables.Out))`, then
+  `_ = publisher.EnsureStreamUntilAsync(...)`. It waits for the server's acknowledgement before its checkpoint moves;
+  a redelivery is dropped by the stream (`Nats-Msg-Id` is the event's id). Only the fields some edge maps leave.
+- **Receiving:** one `new EdgeIngest(js, peer, SystemEdgeTables.In.Where(e => e.FromSystem == peer), registry,
+  deadLetterStore).RunAsync(stopping)` per peer. It applies, then acknowledges, with a command id from the message
+  and the edge, so a redelivery is skipped. A refusal is acknowledged; a conflict or a failure around the decision
+  is redelivered after a pause, then dead-lettered; an unknown aggregate is dead-lettered; a version no edge names is
+  skipped (deploy a version change receiver first).
+- **Connection:** `EdgesNatsConnection.Open(url, user, password, name)` keeps trying while the carrier is down, so
+  the host starts and serves anyway. Wire both only on a writer (`!isReader`), and only when configured.
+- Wire-compatible with pocketcqrs-extensions' federation: a pocketcqrs and a dotnetcqrs system share an edge either
+  way. Tests and kill tests run with `DOTNETCQRS_NATS_SERVER` set to a `nats-server` binary.
 
 ## Hand-written routes in a host
 
