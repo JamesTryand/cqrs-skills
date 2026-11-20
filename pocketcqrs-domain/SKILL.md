@@ -121,6 +121,13 @@ Each of these produced a real defect in this project.
   (v0.29.0). So "write the scenario and watch it fail" does not happen before `schema import`: import, then
   break the generated rule (drop the refusal, drop a projected field) and see verify exit 1, then restore it.
   Read the summary line: `0 skipped` is the pass you want.
+- **`schema verify` checks event types, not their data.** A scenario whose event has the right type but a wrong
+  field passes, with "would append X — but the example data differs: ..." under its ✓ (v0.29.0, by design). Two
+  real defects passed that way: an automation copying its trigger's `status` into the event it started, and events
+  missing fields the command never carried (the generated decider copies only what the command names). Treat any
+  "example data differs" line as a failure: grep for it in your build. And an automation copies every same-named
+  trigger field into its command, `status` too: give the automation slice an `outcomes` entry that sets its event's
+  `status`.
 - **A projection returning plain objects writes nothing, forever.** `project()` must return
   **row ops** — `{ upsert: { key, fields } }` or `{ delete: <keyval> }` — not the row. Anything
   else is counted and logged as discarded, but the collection just stays empty. If a projection
