@@ -76,6 +76,10 @@ what lawful basis is a business and legal call for each system, made with whoeve
   "Erased" marker, never `[object Object]` and never a 500. Test a screen with an erased person in it.
 - **Search and filter on PII needs a blind index** (a keyed HMAC) or a `match` filter. `WHERE email
   = ...` stops working once email is encrypted. Login by email goes through the blind index.
+- **Never put a personal search term in a URL.** A query string is written to request logs and proxies, outside
+  erasure's reach (a real fault, found 2026-11-21). Send the search as a POST with the terms in the body
+  (pocketcqrs v0.30.0 serves `POST /api/cqrs/rm/{collection}` with the same answer as the GET; an option refuses a
+  personal term in a GET once callers have moved), and keep no request log in a system holding personal data.
 - **Delete a subject's blind index at erasure.** Kept, it still identifies someone who asked to be forgotten. The same
   address may then sign up again, as a new subject (the key service won't recreate the old key); say so in the privacy
   policy (the user, 2026-11-16).
