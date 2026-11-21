@@ -93,7 +93,9 @@ host").
   `AlreadyExistsException`, `CommandForbiddenException`, all derived from it), so a bug inside
   `Decide` is a 500 and a reactor retries it, never a 400 refusal. A hand-written decider: set
   `TypedRejections` and throw `CommandRejectedException` for each refusal when you next touch it;
-  without it, anything its `Decide` throws still counts as a refusal.
+  without it, anything its `Decide` throws still counts as a refusal. A hand-written hook inside a
+  generated decider (an outcome's condition or repeated items) refuses with `CommandRejectedException`
+  too: since 0.50.0 any other exception from it is a 500, and a reactor retries it.
 
 ## Declarations the generator honours
 
