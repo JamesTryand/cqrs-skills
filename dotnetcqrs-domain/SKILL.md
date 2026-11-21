@@ -160,8 +160,11 @@ host").
   2026-11-17): `ReactorConsumer` stamps a commandId derived from the reactor, the cause and the
   index, and `DeciderRegistry` skips a command whose id is already in the target stream. Before
   that, an update onto a stream with no create-once rule (auto-ship) could be applied twice;
-  on an older release, rely on the target refusing a redelivery. A dotnetcqrs gateway still
-  ignores `Idempotency-Key`, so a follow-up sent to one over HTTP relies on its target.
+  on an older release, rely on the target refusing a redelivery. Since 0.49.0 the gateway meets the
+  gateway HTTP contract v0.1: `Idempotency-Key` replays only a 200 (kept 7 days; a 409 is decided
+  again), refusals are problem bodies with `reason` (`does-not-exist`, `already-exists`) beside the
+  verbatim `detail`, a 200 is `{"events":[...]}`, and a generated writer needs
+  `Authorization: Bearer <service token>` (`--issue-token`). Decide on `reason`, never on words.
 - **`RunOnceAsync`/`RunExclusivelyAsync` are for tests and offline tools only.** Never use
   them on a live request path.
 - **Other nodes' commits:** on Postgres every append sends `pg_notify` and the store `LISTEN`s, so a
