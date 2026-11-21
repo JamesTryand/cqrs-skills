@@ -88,6 +88,12 @@ host").
   projections, but not yet the authorization (a known gap).
 - Generated refusals name the aggregate in words: "loan request does not exist", not
   "loanRequest does not exist" (0.31.0).
+- **A decider refuses with a `CommandRejectedException`** (0.50.0, hub K8): generated deciders
+  declare `TypedRejections = true` and throw only it (or `DoesNotExistException`,
+  `AlreadyExistsException`, `CommandForbiddenException`, all derived from it), so a bug inside
+  `Decide` is a 500 and a reactor retries it, never a 400 refusal. A hand-written decider: set
+  `TypedRejections` and throw `CommandRejectedException` for each refusal when you next touch it;
+  without it, anything its `Decide` throws still counts as a refusal.
 
 ## Declarations the generator honours
 
