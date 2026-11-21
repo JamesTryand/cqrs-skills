@@ -45,6 +45,9 @@ notebook's `reference/environments` `reference/machine-paths.md`, or ask).
    - The generated query route selects declared columns only, so a column the projection
      writes but the model doesn't declare **silently disappears**. Compare table columns
      against the generated `Columns` list before taking a route.
+   - Since 0.48.0 the generated query route also answers a POST with its terms in a JSON body, the same answer
+     as the GET. A caller searching by a personal field sends a POST, so the term is never in a URL;
+     `Cqrs:RefusePersonalTermsInUrl` (off) refuses such a GET once every caller has moved.
 5. **Test through the real commands, over HTTP.** Run the new test against the previous
    commit and see it fail (a detached `git worktree` at `HEAD`).
 
