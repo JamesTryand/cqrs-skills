@@ -50,7 +50,7 @@ node scripts/architecture-check.js <path>/system.architecture.json          # ex
 Or pinned to a tag with nothing checked out, as landing-pages' `model/verify.sh` does:
 
 ```sh
-EMS="https://raw.githubusercontent.com/jamestryand/eventmodelschema/v6.1.1/schema"
+EMS="https://raw.githubusercontent.com/jamestryand/eventmodelschema/v6.2.0/schema"
 TMP="$(mktemp -d)"; mkdir -p "$TMP/scripts"
 for f in package.json package-lock.json architecture.schema.json eventmodeling.schema.json scripts/architecture-check.js; do
   curl -fsSL "$EMS/$f" -o "$TMP/$f"
@@ -92,8 +92,8 @@ generated (below).
 the example then proves they don't. The checker runs them (check `examples`), and so do both generators.
 
 **What crosses is the `edgeMessage`**: the source event's id, system, event and public version, and only
-the fields some internal edge from that event maps. Not either runtime's own event record, so a system on
-either runtime can be on either end.
+the fields the event publishes: those its public marker lists (6.2.0), or else those some internal edge from
+it maps. Not either runtime's own event record, so a system on either runtime can be on either end.
 
 **Generating it** (pocketcqrs v0.28.0, Go target; dotnetcqrs 0.45.0):
 `schema import <doc> --lang go --out domain --architecture <coordinating doc> --system <id>` (dotnetcqrs:
@@ -113,3 +113,30 @@ carrier image with its per-system users, 2026-11-19).
 edges name until one names it, and skips an older one. So deploy the sender first, or keep the old version's edge in the
 coordinating document until every sender has moved: a receiver deployed first, naming only the new version, skips what
 an old sender still sends.
+
+## Systems in their own repositories (EventModel 6.2.0, coordinating document 0.3.0)
+
+When systems live in separate repositories and release apart, each system's document is the authority on that
+system, and a **connecting document** in a repository of its own is a view of how some of them work together. Several
+views may hold at once, as long as they do not contradict each other.
+
+- **Name a system by release**: `"release": { "system": "<its document id>", "tag": "<its release tag>" }`, beside
+  `document` (a path, for systems in the same repository) and `placeholder`. Where each repository is stays out of the
+  document: the checker takes the installation's own map (`--systems <file>`), which lists each system's checkout and
+  document path, and the views (`"views": [...]`) the installation holds.
+- **Say what leaves**: a public event's marker lists the fields it publishes,
+  `"public": { "version": 1, "fields": ["memberId", "branchId"] }`. An edge may read only those, so a sender's build
+  needs only its own document. A system named by release must list them.
+- **Say what you rely on**: a receiver's `expects`, keyed by the other system's document id, with `writtenAgainst`
+  (that system's release tag) and the events it uses, each with only the fields it reads. It is checked against the
+  sender wherever it is stated; a system named by release states one for every edge into it. A tag behind the one in
+  use is a note to re-check, not a failure. A system never expects from itself.
+- **A message that means nothing to its receiver** is accepted with nothing recorded (an outcome with no events, and a
+  scenario with `then: {"events": []}`), not refused, so a refusal keeps meaning "this should not have been sent".
+- **How far a check reaches**: a check judges the systems it names, at `--reach short` (the default: those systems,
+  reading only the documents that feed them), `full` (and everything they depend on) or `complete` (everything
+  connected). With nothing named, the whole installation. A stale view (one naming an older release of a system
+  another view reads newer) is checked against the newer document and ratified with a note when its links hold.
+
+The worked example is eventmodelschema `schema/examples/links/` (two systems, each in its own repository, and one
+connecting document; `npm run test:links`) and `schema/examples/reach/` (six systems in two views).

@@ -1,6 +1,6 @@
 ---
 name: eventmodeling
-description: "Event Modeling as a method, done with the user, ending in an EventModel document (eventmodelschema 6.1.0) that pocketcqrs or dotnetcqrs generates and verifies: brainstorm the events, plot them as a story, storyboard the screens, find the commands and views, swimlanes, a states-by-commands table per aggregate, Given/When/Then scenarios, the completeness check, the boundary check, then the JSON. Also when one model becomes several systems: public events and commands, and a coordinating document checked across them. Use when designing or changing a domain, running an event-modelling workshop, writing or reviewing an EventModel document, slices, scenarios or swimlanes, or splitting a model into systems. Architecture rules are in cqrs-patterns; generating and running code is in pocketcqrs-domain and dotnetcqrs-domain."
+description: "Event Modeling as a method, done with the user, ending in an EventModel document (eventmodelschema 6.2.0) that pocketcqrs or dotnetcqrs generates and verifies: brainstorm the events, plot them as a story, storyboard the screens, find the commands and views, swimlanes, a states-by-commands table per aggregate, Given/When/Then scenarios, the completeness check, the boundary check, then the JSON. Also when one model becomes several systems: public events and commands, and a coordinating document checked across them. Use when designing or changing a domain, running an event-modelling workshop, writing or reviewing an EventModel document, slices, scenarios or swimlanes, or splitting a model into systems. Architecture rules are in cqrs-patterns; generating and running code is in pocketcqrs-domain and dotnetcqrs-domain."
 ---
 
 # Event Modeling, with the user
@@ -84,6 +84,8 @@ go run github.com/jamestryand/pocketcqrs@<version> schema import model.eventmode
 Schema 6.0.0 needs pocketcqrs v0.25.0 or dotnetcqrs 0.42.0 or later (5.0.0's `targetIdField`; 6.0.0's
 ingresses with no source details, `outputs`, no `schedule` or `elapsed`). A slice with neither a screen
 nor an ingress (6.1.0: another system sends its public command) needs pocketcqrs v0.27.0 or dotnetcqrs 0.44.0.
+6.2.0 (a scenario accepted with nothing recorded, `expects`, the fields a public event publishes) needs
+pocketcqrs v0.32.0 or dotnetcqrs 0.51.0; older releases refuse the document.
 pocketcqrs from v0.22.0 checks the document against the schema before anything else, as dotnetcqrs
 does, and names each problem's place. With an older pocketcqrs, validate first from an
 eventmodelschema checkout's `schema/` folder:

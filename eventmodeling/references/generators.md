@@ -19,7 +19,10 @@ naming each thing, rather than generated without it. Runtime workflow after gene
   its trigger events. The report names each.
 - **Every command and event needs an `aggregate`** (or `--aggregate id=name`); it won't guess from
   lanes.
-- **Reads `public`** (4.2.0) and generates nothing from it.
+- **Reads `public`** (4.2.0) and generates nothing from it, except an event's published `fields` (6.2.0, v0.32.0):
+  with a coordinating document, its edge tables publish exactly those, and an edge reading anything else is refused.
+- **Reads `expects`** (6.2.0, v0.32.0), in a single or a split document, and generates nothing; lint refuses one naming
+  the document's own id. dotnetcqrs (0.51.0) the same.
 - **An automation** becomes a reactor on the trigger events. It dispatches the command with the
   trigger event's fields copied **by name**, to the stream its `targetIdField` names (v0.23.0, schema
   5.0.0; before, a stream derived from the trigger's id, which could not reach an existing stream
@@ -33,7 +36,9 @@ naming each thing, rather than generated without it. Runtime workflow after gene
 - **Every scenario is run** against the generated code. The event types are the assertion; the
   example data is compared too, and a difference is reported as a note, not a failure ("would append
   X, but the example data differs"). An `error` scenario passes only on its own message. A command
-  scenario runs the command's authorization first, over views built from its given events. An
+  scenario runs the command's authorization first, over views built from its given events. A `stateChange`
+  scenario whose `then.events` is empty (6.2.0, v0.32.0, dotnetcqrs 0.51.0) passes, as "accepted, nothing
+  recorded", only when the command is accepted and records nothing. An
   automation scenario's given event from another aggregate is the trigger, said in brackets; it runs
   on the stream the trigger names, and fails if its command carries another value for the field or
   it shows no trigger (v0.23.0).

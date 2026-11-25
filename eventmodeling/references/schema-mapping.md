@@ -1,4 +1,4 @@
-# The method in the schema (eventmodelschema 6.1.0)
+# The method in the schema (eventmodelschema 6.2.0)
 
 ## Concept to schema
 
@@ -21,9 +21,11 @@
 | timeline order | the order of `slices[]` | left to right |
 | chapters | `chapters`, a slice's `chapterId` | |
 | Given/When/Then | a slice's `scenarios`: `stateChange`, `error`, `stateView` | one command or one view each |
+| accepted, nothing recorded | a `stateChange` scenario with `then: {"events": []}` (6.2.0) | the scenario of an outcome with no events; passes only when the command is accepted and records nothing. A refusal stays an `error` scenario |
 | unknown | `hotspots.<id>`: `note`, `target` (an element, a slice, or an ordering of two slices) | |
 | board state | a slice's `status` | not carried into code |
-| part of a system's contract | `public: {"version": n}` on an event or command (4.2.0) | see `systems.md` |
+| part of a system's contract | `public: {"version": n}` on an event or command (4.2.0); on an event, `fields` lists what it publishes (6.2.0) | see `systems.md` |
+| what this system relies on from others | `expects.<their document id>`: `writtenAgainst` (their release tag), `events` (each with its version and only the fields used) (6.2.0) | generates nothing; see `systems.md` |
 
 ## Shapes worth knowing
 
