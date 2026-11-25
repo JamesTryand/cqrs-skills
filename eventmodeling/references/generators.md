@@ -21,6 +21,11 @@ naming each thing, rather than generated without it. Runtime workflow after gene
   lanes.
 - **Reads `public`** (4.2.0) and generates nothing from it, except an event's published `fields` (6.2.0, v0.32.0):
   with a coordinating document, its edge tables publish exactly those, and an edge reading anything else is refused.
+  Without one (v0.33.0, dotnetcqrs 0.52.0), `--lang go` still writes the edge tables when some marker lists its
+  fields: those events with exactly those fields, and no edges in, so a sender is built from its own document.
+- **Names a sender by its document id** (v0.33.0, dotnetcqrs 0.52.0): the edge tables' system and every message's
+  `system` are the sending document's `id`, never a view's name for it. A system a view names by release generates
+  when the document given is the one the release names; an edge from a placeholder is refused.
 - **Reads `expects`** (6.2.0, v0.32.0), in a single or a split document, and generates nothing; lint refuses one naming
   the document's own id. dotnetcqrs (0.51.0) the same.
 - **An automation** becomes a reactor on the trigger events. It dispatches the command with the

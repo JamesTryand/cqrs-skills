@@ -85,7 +85,9 @@ Schema 6.0.0 needs pocketcqrs v0.25.0 or dotnetcqrs 0.42.0 or later (5.0.0's `ta
 ingresses with no source details, `outputs`, no `schedule` or `elapsed`). A slice with neither a screen
 nor an ingress (6.1.0: another system sends its public command) needs pocketcqrs v0.27.0 or dotnetcqrs 0.44.0.
 6.2.0 (a scenario accepted with nothing recorded, `expects`, the fields a public event publishes) needs
-pocketcqrs v0.32.0 or dotnetcqrs 0.51.0; older releases refuse the document.
+pocketcqrs v0.32.0 or dotnetcqrs 0.51.0; older releases refuse the document. A message names its sender by the
+sender's document id, and a sender publishes from its own document alone, from pocketcqrs v0.33.0 and dotnetcqrs
+0.52.0 (coordinating document 0.3.1).
 pocketcqrs from v0.22.0 checks the document against the schema before anything else, as dotnetcqrs
 does, and names each problem's place. With an older pocketcqrs, validate first from an
 eventmodelschema checkout's `schema/` folder:
