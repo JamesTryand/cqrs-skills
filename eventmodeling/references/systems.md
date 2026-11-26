@@ -102,7 +102,11 @@ nothing on the wire; changing a document's `id` does, so treat a document id as 
 `schema import <doc> --lang go --out domain --architecture <coordinating doc> --system <id>` (dotnetcqrs:
 `generate ... --architecture ... --system ...`) writes the system's edge tables: the edges into it
 (`EdgesIn`) and the events it publishes (`EdgesOut`). A failing example, an edge's event or command that is
-not public, a target id of several fields, or a personal field on an edge refuses the run.
+not public, a target id of several fields, or a personal field on an edge refuses the run. A system linked in
+several connecting documents (pocketcqrs v0.34.0, dotnetcqrs 0.53.0) gives `--architecture` once per document,
+and `--system` once for all, once per document, or not at all (each document's system is the one that is this
+document, by its release id or path); its edges come from all of them, and two documents giving one edge id
+different ends or translations are refused.
 
 **Carrying it** is the host's and surface tooling's, never the model's: pocketcqrs-extensions v0.5.0's
 federation takes the tables (`PublisherConfig.Edges`, `IngestConfig.Edges`) over NATS JetStream, one user per

@@ -214,7 +214,8 @@ section in `cqrs-patterns`.
 
 ## Carrying a system's edges (0.46.0)
 
-`generate --architecture <doc> --system <id>` writes `Edges.g.cs` (`Generated.SystemEdgeTables.In`/`.Out`); the
+`generate --architecture <doc> --system <id>` writes `Edges.g.cs` (`Generated.SystemEdgeTables.In`/`.Out`;
+since 0.53.0 `--architecture` is repeatable for a system in several connecting documents, `--system` optional); the
 carrier is the host's, wired by hand from its own configuration, never the generator's (decision 0033). Over NATS
 JetStream, `JamesTryand.DotnetCqrs.Edges.Nats`:
 
