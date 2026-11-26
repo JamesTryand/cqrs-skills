@@ -110,7 +110,42 @@ version bump. It still ships as one binary: all of pocketcqrs with the domains c
   unreleased version; a released binary needs neither.
 - **JS-only domains need no Go program:** they run on the stock binary, fetched by version
   (`go install github.com/jamestryand/pocketcqrs@vX.Y.Z` or a release), never built from a
-  checkout.
+  checkout. Until one must publish to another system: then the shell below.
+
+## The maturity path: how a system grows
+
+A system moves along one path, a step at a time, and only when a step is worth it:
+
+1. **JavaScript functions on the stock server.** The model is imported into `pb_functions/`, plus any
+   hand-written parts, and the stock `pocketcqrs` binary runs them. The fastest way to prove a domain.
+2. **A Go program of its own.** `host.Run`, as the stock `main.go` does, plus what is this program's own.
+   Aggregates graduate from JavaScript to generated Go one at a time (`docs/go-guide.md`, "Converting a
+   domain from JS to Go").
+3. **dotnetcqrs**, when the system needs what it brings (its own skill, `dotnetcqrs-domain`).
+
+**The first step of 2 can be a shell around the stock server.** `host.Run` still loads `--functionsDir`, so a
+program that is only `host.Run` plus its own wiring runs the same JavaScript, unchanged. Take this step when a
+system needs something the stock server cannot do, most often **publishing its public events to another system**
+over pocketcqrs-extensions' `federation` (the stock server cannot). Do this rather than building a relay beside the
+server: a second program reading the server's events is another messaging layer to run and reason about.
+
+- `main.go`: `host.Run(host.Options{Serve: ...})`, with the publisher registered in `Serve` (only the server
+  publishes, never a one-shot command of the same binary). No domain package is compiled in: a Go decider may not
+  take a name a JavaScript one has.
+- **The publishing table is hand-written** while the rules are JavaScript: the generator writes `edges.go` only
+  into a Go wiring package. Keep it to what the document says (`[]edges.Out`: the stored event type, the document
+  id, the event, its public version and its listed fields), and **test it against the document**:
+  `emschema.PublishedEdges(doc)` must equal the table, and each `EventType` must be a type a JavaScript decider
+  stores (`type: 'HealthCheckPassed'`), so a model change not made in the table fails the build.
+- Build the image's importer and program from the version `go.mod` pins (`go tool pocketcqrs` / `go build
+  github.com/jamestryand/pocketcqrs`), not a checkout, so the code that writes `pb_functions` and the code that runs
+  them are one release.
+- **What crosses from JavaScript:** a field a JavaScript decider leaves unset is stored, and published, as `null`.
+  A receiver treats a `null` target field as no target and drops the message, which is usually what you want.
+- On first start the publisher sends the whole history of each published event (its checkpoint starts at zero),
+  so check what a receiver does with the old ones before deploying.
+
+This shell is pocketcqrs mechanics only. dotnetcqrs hosts are their own programs from the start.
 
 ## Traps that have actually cost time
 
