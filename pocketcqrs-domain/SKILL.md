@@ -118,12 +118,15 @@ A system moves along one path, a step at a time, and only when a step is worth i
 
 1. **JavaScript functions on the stock server.** The model is imported into `pb_functions/`, plus any
    hand-written parts, and the stock `pocketcqrs` binary runs them. The fastest way to prove a domain.
-2. **A Go program of its own.** `host.Run`, as the stock `main.go` does, plus what is this program's own.
-   Aggregates graduate from JavaScript to generated Go one at a time (`docs/go-guide.md`, "Converting a
-   domain from JS to Go").
-3. **dotnetcqrs**, when the system needs what it brings (its own skill, `dotnetcqrs-domain`).
+2. **A Go program around the stock server.** `host.Run`, as the stock `main.go` does, plus what is this
+   program's own; the JavaScript runs unchanged (below).
+3. **Its JavaScript ported to Go.** The aggregates, projections and hand-written parts move from `pb_functions/`
+   to generated and hand-written Go, one at a time (`docs/go-guide.md`, "Converting a domain from JS to Go"),
+   until the program is a Go domain like any other (`init go`'s shape: `domain/`, generated from the document,
+   and its edge tables generated too, so the hand-written publishing table below goes).
+4. **dotnetcqrs**, when the system needs what it brings (its own skill, `dotnetcqrs-domain`).
 
-**The first step of 2 can be a shell around the stock server.** `host.Run` still loads `--functionsDir`, so a
+**Step 2 is a shell around the stock server.** `host.Run` still loads `--functionsDir`, so a
 program that is only `host.Run` plus its own wiring runs the same JavaScript, unchanged. Take this step when a
 system needs something the stock server cannot do, most often **publishing its public events to another system**
 over pocketcqrs-extensions' `federation` (the stock server cannot). Do this rather than building a relay beside the
